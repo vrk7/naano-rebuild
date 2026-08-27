@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+
+# NOTE: .agent-logs/ is intentionally NOT ignored. The agent capture log ships
+# with this repo as part of the submission. Do not add it here.
