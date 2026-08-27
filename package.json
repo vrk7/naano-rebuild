@@ -1,0 +1,13 @@
+{
+  "name": "naano-rebuild",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && git config core.hooksPath .githooks || true"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  }
+}
