@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Committed pre-commit hook. Active via core.hooksPath=.githooks (see README).
+set -euo pipefail
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$HOOK_DIR/secret-guard.py"
