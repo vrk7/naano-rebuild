@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 /**
  * Nothing can be scored against nothing.
  *
@@ -15,6 +17,12 @@ export function NoIcps() {
         against. Every number on this page would be meaningless, so there are no
         numbers on this page.
       </p>
+      <Link
+        href="/brand/icps"
+        className="mt-4 inline-block rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground"
+      >
+        Set up your ICPs →
+      </Link>
     </main>
   );
 }

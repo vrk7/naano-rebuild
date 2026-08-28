@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { loadCampaigns } from "@/lib/campaign/queries";
+import { loadWorkspace } from "@/lib/brand/queries";
 import { buildTaxonomyLookup } from "@/lib/score/labels";
 
 export const metadata = { title: "Campaigns" };
@@ -11,6 +13,14 @@ const MODE_LABEL = {
 } as const;
 
 export default async function BrandHome() {
+  /*
+   * A brand account with no workspace has not been through onboarding: there is
+   * no brand profile, no ICP and nothing to score. Every screen here would be an
+   * empty version of itself, so it goes to the step that fixes that instead of
+   * rendering "no campaigns yet" at someone who cannot make one.
+   */
+  if (!(await loadWorkspace())) redirect("/brand/setup");
+
   // Scoped by RLS to the workspaces this session belongs to, so no explicit
   // workspace filter is needed or trusted here.
   const campaigns = await loadCampaigns();
@@ -35,8 +45,7 @@ export default async function BrandHome() {
 
       {campaigns.length === 0 ? (
         <p className="mt-8 rounded-lg border border-dashed border-border p-6 text-sm text-pretty text-muted-foreground">
-          No campaigns yet, or this account is not a member of a workspace. Start one
-          and the brief can be a single line.
+          No campaigns yet. Start one — the brief can be a single line.
         </p>
       ) : (
         <ul className="mt-8 space-y-3">
