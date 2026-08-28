@@ -2,6 +2,9 @@
   "name": "naano-rebuild",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
