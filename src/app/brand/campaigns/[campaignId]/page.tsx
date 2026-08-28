@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BookedList } from "@/components/collaboration/booked-list";
 import { BriefPanel } from "@/components/campaign/brief-panel";
 import { loadCampaign } from "@/lib/campaign/queries";
+import { loadCampaignCollaborations } from "@/lib/collaboration/queries";
 import { buildTaxonomyLookup } from "@/lib/score/labels";
 
 export async function generateMetadata({ params }: PageProps<"/brand/campaigns/[campaignId]">) {
@@ -20,6 +22,8 @@ export default async function CampaignPage({
   // Also the answer when the campaign belongs to another workspace: RLS returns
   // nothing and the page cannot tell the difference, which is the point.
   if (!campaign) notFound();
+
+  const collaborations = await loadCampaignCollaborations(campaignId);
 
   const taxonomy = buildTaxonomyLookup([]);
   const created = new Date(campaign.createdAt).toLocaleDateString("en-GB", {
@@ -77,6 +81,17 @@ export default async function CampaignPage({
           </p>
         )}
       </div>
+
+      {collaborations.length > 0 ? (
+        <section className="mt-8">
+          <h2 className="text-sm font-medium">Booked</h2>
+          <BookedList
+            collaborations={collaborations}
+            campaignId={campaign.id}
+            now={new Date()}
+          />
+        </section>
+      ) : null}
 
       <section className="mt-8 rounded-lg border border-border p-5">
         <h2 className="text-sm font-medium">Next</h2>

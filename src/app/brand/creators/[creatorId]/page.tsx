@@ -131,6 +131,28 @@ export default async function CreatorProfilePage({
         />
       ) : null}
 
+      {campaign ? (
+        <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link
+            href={`/brand/campaigns/${campaign.id}/book/${creator.id}`}
+            className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground"
+          >
+            Book on {campaign.name}
+          </Link>
+          <span className="text-xs text-pretty text-muted-foreground">
+            Price, the date it has to go out by, and whether you approve the draft.
+          </span>
+        </div>
+      ) : (
+        /* No campaign, no booking. A price with no brief behind it is the dead
+           end at `brand/14` that PRODUCT.md puts the campaign before the
+           marketplace to fix. */
+        <p className="mt-6 text-sm text-pretty text-muted-foreground">
+          Open this creator from a campaign to book them — an offer is made against
+          a brief, not on its own.
+        </p>
+      )}
+
       <section className="mt-10">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold tracking-tight">
