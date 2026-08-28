@@ -236,13 +236,29 @@ async function seedWorkspace(
       .select("id"),
   );
 
-  unwrap(
+  const [wallet] = unwrap(
     "insert wallet",
     await client
       .from("wallet")
       .insert({
         workspace_id: workspace.id,
         balance_cents: DEMO_WORKSPACE.walletBalanceCents,
+      })
+      .select("id"),
+  ) as Array<{ id: string }>;
+
+  // The entry the balance came from. `book_creator` writes the ledger row and
+  // the new balance in one transaction, so the two never disagree in the
+  // product; without this the seeded workspace would open with five commits
+  // against money nothing ever put in.
+  unwrap(
+    "insert topup",
+    await client
+      .from("ledger_entry")
+      .insert({
+        wallet_id: wallet.id,
+        kind: "topup",
+        amount_cents: DEMO_WORKSPACE.walletBalanceCents,
       })
       .select("id"),
   );
@@ -725,6 +741,22 @@ async function main(): Promise<void> {
   }
   console.log(`\npeople      ${personCache.size}`);
   console.log(`companies   ${companyCache.size}`);
+
+  // Settling up once, rather than after each booking: the seed is the only
+  // writer here, so the arithmetic is the same and the round trips are not.
+  const committedCents = results.reduce((total, result) => total + result.priceCents, 0);
+  unwrap(
+    "settle wallet",
+    await client
+      .from("wallet")
+      .update({ balance_cents: DEMO_WORKSPACE.walletBalanceCents - committedCents })
+      .eq("workspace_id", context.workspaceId)
+      .select("id"),
+  );
+  console.log(
+    `wallet      $${((DEMO_WORKSPACE.walletBalanceCents - committedCents) / 100).toLocaleString()} left of ` +
+      `$${(DEMO_WORKSPACE.walletBalanceCents / 100).toLocaleString()}`,
+  );
 
   const firstCollaboration = unwrap(
     "load first collaboration",
