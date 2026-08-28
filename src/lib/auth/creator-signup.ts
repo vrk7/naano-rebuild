@@ -13,6 +13,10 @@
  * page, which CLAUDE.md requires parsing into a known shape rather than casting.
  */
 
+import { type ParseResult } from "@/lib/parse";
+
+export type { ParseResult };
+
 /** `creator_rate.price_cents` is a Postgres `int`. Beyond this the insert fails. */
 const MAX_PRICE_CENTS = 2_147_483_647;
 
@@ -26,9 +30,6 @@ export type CreatorListingInput = {
   readonly priceCents: number;
 };
 
-export type ParseResult<T> =
-  | { readonly kind: "ok"; readonly value: T }
-  | { readonly kind: "invalid"; readonly error: string };
 
 /**
  * Accepts a public LinkedIn profile URL and normalises it.

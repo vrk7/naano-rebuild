@@ -93,11 +93,13 @@ export const SENIORITIES: ReadonlyArray<string> = [
   "founder",
 ];
 
-/** ISO-3166 alpha-2. */
-export const GEOS: ReadonlyArray<string> = [
-  "US", "GB", "DE", "FR", "NL", "ES", "IT", "SE", "PL", "IE",
-  "CA", "AU", "SG", "AE", "IN", "PK", "NG", "BR", "MX", "ZA",
-];
+/**
+ * ISO-3166 alpha-2. Re-exported from the app's own list rather than repeated:
+ * the seed writes the geo facets that `campaign.geos` and `icp_target` are
+ * later matched against, so a second copy here would drift out of a shared
+ * vocabulary into two.
+ */
+export { SUPPORTED_REGIONS as GEOS } from "@/lib/geo/regions";
 
 /** The regions a European industrial ICP would actually target. */
 export const EU_CORE_GEOS: ReadonlyArray<string> = ["DE", "FR", "NL", "GB", "SE", "PL", "IT", "ES"];
