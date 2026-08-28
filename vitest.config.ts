@@ -28,6 +28,22 @@ export default defineConfig({
     setupFiles: ["./tests/setup-env.ts"],
     // RLS tests create users and fixtures over the network.
     testTimeout: 30_000,
+    /*
+     * Test files run one at a time.
+     *
+     * Four of them build fixtures against the real Supabase project, and each
+     * signs a handful of users in. Run concurrently they trip the hosted auth
+     * rate limit — "Request rate limit reached" out of signInWithPassword —
+     * which fails whole suites at beforeAll, roughly one run in four. The
+     * failure is in the fixture, never in the thing under test, which is the
+     * worst kind: it teaches you to re-run rather than to read.
+     *
+     * Serialising costs wall time on a suite that is otherwise seconds, and
+     * buys a result that means what it says. The alternative — retrying the
+     * sign-in — keeps the suite fast but makes every future rate-limit problem
+     * invisible.
+     */
+    fileParallelism: false,
     hookTimeout: 60_000,
   },
 });
