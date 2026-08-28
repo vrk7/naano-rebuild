@@ -402,6 +402,45 @@ describe.skipIf(!hasCredentials)("accepting", () => {
     ]);
   });
 
+  /**
+   * RLS says whose rows these are; column privileges say which columns.
+   * Without the second, a creator could raise the price on a booking they had
+   * already accepted and the ledger entry behind it would not follow.
+   */
+  it("refuses either side editing the terms directly", async () => {
+    const [before] = must(
+      "terms before",
+      await admin!
+        .from("collaboration")
+        .select("price_cents, post_by, respond_by, approval_required")
+        .eq("id", collaborationId),
+    );
+
+    const byCreator = await userClient(creatorToken)
+      .from("collaboration")
+      .update({ price_cents: 999_999 })
+      .eq("id", collaborationId);
+    expect(byCreator.error?.code).toBe("42501");
+
+    // The brand is no more privileged here. Terms are set once, by the booking.
+    const byBrand = await userClient(brand.token)
+      .from("collaboration")
+      .update({ approval_required: false })
+      .eq("id", collaborationId);
+    expect(byBrand.error?.code).toBe("42501");
+
+    const [after] = must(
+      "terms after",
+      await admin!
+        .from("collaboration")
+        .select("price_cents, post_by, respond_by, approval_required")
+        .eq("id", collaborationId),
+    );
+    expect(after).toEqual(before);
+
+    // `state` is still writable, which is what the transition above needed.
+  });
+
   it("refuses the same accept twice", async () => {
     const { error } = await userClient(creatorToken).rpc("apply_collaboration_transition", {
       p_collaboration_id: collaborationId,
