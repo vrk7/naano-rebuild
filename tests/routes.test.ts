@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { destinationFor } from "@/lib/auth/credentials";
 import {
   LOGIN_PATH,
   REGISTER_PATH,
@@ -128,6 +129,17 @@ describe("routing by role", () => {
     ).toEqual({ kind: "redirect", to: ROLE_HOME.brand });
   });
 
+  it("ignores a returnTo pointing outside both role areas", () => {
+    // The case that shipped: the marketing header linked to /sign-in, which is
+    // not a route. Signed out, the proxy sent it to login as returnTo; signing
+    // in then followed it to a 404, so a successful sign-in read as a failure.
+    for (const value of ["/sign-in", "/contact", "/", "/register"]) {
+      expect(
+        decideRoute({ pathname: LOGIN_PATH, search: "", role: "brand", returnTo: value }),
+      ).toEqual({ kind: "redirect", to: ROLE_HOME.brand });
+    }
+  });
+
   it("maps paths to the role that owns them", () => {
     expect(pathRole("/brand")).toBe("brand");
     expect(pathRole("/brand/x/y")).toBe("brand");
@@ -169,6 +181,32 @@ describe("returnTo cannot redirect off-site", () => {
         returnTo: value,
       });
       expect(decision).toEqual({ kind: "redirect", to: ROLE_HOME.brand });
+    }
+  });
+});
+
+describe("where signing in lands you", () => {
+  it("goes home when there is no returnTo", () => {
+    expect(destinationFor("brand", null)).toBe(ROLE_HOME.brand);
+    expect(destinationFor("creator", null)).toBe(ROLE_HOME.creator);
+  });
+
+  it("follows a returnTo into the role's own area", () => {
+    expect(destinationFor("brand", "/brand/leads")).toBe("/brand/leads");
+    expect(destinationFor("creator", "/creator/collaborations/abc")).toBe(
+      "/creator/collaborations/abc",
+    );
+  });
+
+  it("drops a returnTo the role may not follow", () => {
+    expect(destinationFor("brand", "/creator")).toBe(ROLE_HOME.brand);
+    expect(destinationFor("creator", "/brand/wallet")).toBe(ROLE_HOME.creator);
+  });
+
+  it("drops a well-formed path that is not part of the app", () => {
+    // safeReturnTo proves the value is same-origin, not that it resolves.
+    for (const value of ["/sign-in", "/contact", "/", "/register/brand"]) {
+      expect(destinationFor("brand", value)).toBe(ROLE_HOME.brand);
     }
   });
 });

@@ -127,9 +127,11 @@ export function decideRoute(input: {
 
   if (isAuth) {
     const candidate = safeReturnTo(returnTo);
-    // A returnTo pointing into the other role's area is dropped rather than
-    // followed, or signing in would bounce twice to land somewhere unexpected.
-    const wanted = candidate && pathRole(candidate) !== otherRole(role) ? candidate : home;
+    // Followed only when it points into this role's own area. The other role's
+    // area would bounce twice and land somewhere unexpected; anything outside
+    // both is not a place a session belongs, and a well-formed path is not a
+    // path that resolves — see destinationFor for the 404 this prevents.
+    const wanted = candidate && pathRole(candidate) === role ? candidate : home;
     return { kind: "redirect", to: wanted };
   }
 
@@ -139,6 +141,3 @@ export function decideRoute(input: {
   return { kind: "allow" };
 }
 
-function otherRole(role: Role): Role {
-  return role === "brand" ? "creator" : "brand";
-}
