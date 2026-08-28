@@ -6,9 +6,21 @@ import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
+const DESCRIPTION =
+  "Score LinkedIn creators against the ICP you actually sell to, keep the brief honest, and trace every reaction back to a person, a company and a match.";
+
 export const metadata: Metadata = {
-  title: "naano",
-  description: "LinkedIn creator campaigns, traced back to the post.",
+  title: {
+    default: "naano — point at a post, see who it brought in",
+    template: "%s · naano",
+  },
+  description: DESCRIPTION,
+  openGraph: {
+    title: "naano — point at a post, see who it brought in",
+    description: DESCRIPTION,
+    siteName: "naano",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
