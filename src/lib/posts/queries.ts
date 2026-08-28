@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/supabase/paginate";
 import {
   postEconomics,
   rollUpCompanies,
@@ -15,9 +16,6 @@ import {
  * post belonging to another workspace is simply absent rather than filtered
  * here. Nothing in this file compares a workspace id.
  */
-
-/** PostgREST caps a response at 1000 rows; a busy post exceeds that on matches. */
-const PAGE_SIZE = 1000;
 
 export type PostSummary = {
   readonly id: string;
@@ -46,29 +44,6 @@ export type PostDetail = {
   readonly companies: ReadonlyArray<CompanyRollup>;
   readonly economics: PostEconomics;
 };
-
-/**
- * Pages through a query rather than trusting one response to be complete.
- *
- * A truncated list here would silently understate every number on the page —
- * fewer engaged people, fewer matches, and a cost per person that looks better
- * than it is. Wrong in the flattering direction is the worst kind.
- */
-async function fetchAllRows<T>(
-  runPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
-  label: string,
-): Promise<T[]> {
-  const rows: T[] = [];
-
-  for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await runPage(from, from + PAGE_SIZE - 1);
-    if (error) throw new Error(`${label} failed: ${error.message}`);
-    if (!data) throw new Error(`${label} returned no data`);
-
-    rows.push(...data);
-    if (data.length < PAGE_SIZE) return rows;
-  }
-}
 
 /** Narrows one nested Supabase relation, which types as unknown without generated types. */
 function one<T>(value: unknown): T | null {
