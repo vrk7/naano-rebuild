@@ -8,6 +8,7 @@
  * or a facet on screen goes through here so a uuid never reaches a user.
  */
 
+import { SENIORITY_LABEL } from "@/lib/taxonomy/seniority";
 import type { ScoreDimension } from "./weights";
 
 export type TopicRow = {
@@ -22,18 +23,6 @@ export const DIMENSION_LABEL: Readonly<Record<ScoreDimension, string>> = {
   seniority: "Seniority",
   industry: "Industry",
   geo: "Region",
-};
-
-/** Matches the seniority ladder in src/lib/seed/taxonomy.ts. */
-const SENIORITY_LABEL: Readonly<Record<string, string>> = {
-  ic: "Individual contributor",
-  senior: "Senior",
-  lead: "Lead",
-  manager: "Manager",
-  director: "Director",
-  vp: "VP",
-  "c-level": "C-level",
-  founder: "Founder",
 };
 
 const REGION_NAMES = new Intl.DisplayNames(["en"], { type: "region" });

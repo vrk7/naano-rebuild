@@ -5,6 +5,11 @@
  * filter on about six — so a creator's third industry is unreachable by any
  * brand filter. These lists are the single source for creator_topic,
  * icp_target, brand_profile.industry_id and the marketplace filters.
+ *
+ * Imports here are relative and carry a `.ts` extension, unlike the rest of
+ * `src`. `scripts/seed.ts` runs under plain node, which resolves neither the
+ * `@/` alias nor an extensionless path — the re-export below read `@/lib/geo`
+ * and made `npm run db:seed` fail on load.
  */
 
 export type TopicSeed = {
@@ -82,16 +87,7 @@ export const JOB_FUNCTIONS: ReadonlyArray<string> = FUNCTION_TOPICS.map(
   (t) => t.slug,
 );
 
-export const SENIORITIES: ReadonlyArray<string> = [
-  "ic",
-  "senior",
-  "lead",
-  "manager",
-  "director",
-  "vp",
-  "c-level",
-  "founder",
-];
+export { SENIORITIES } from "../taxonomy/seniority.ts";
 
 /**
  * ISO-3166 alpha-2. Re-exported from the app's own list rather than repeated:
@@ -99,7 +95,7 @@ export const SENIORITIES: ReadonlyArray<string> = [
  * later matched against, so a second copy here would drift out of a shared
  * vocabulary into two.
  */
-export { SUPPORTED_REGIONS as GEOS } from "@/lib/geo/regions";
+export { SUPPORTED_REGIONS as GEOS } from "../geo/regions.ts";
 
 /** The regions a European industrial ICP would actually target. */
 export const EU_CORE_GEOS: ReadonlyArray<string> = ["DE", "FR", "NL", "GB", "SE", "PL", "IT", "ES"];

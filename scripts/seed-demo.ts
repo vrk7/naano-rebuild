@@ -28,6 +28,7 @@ import {
   type GeneratedPerson,
 } from "../src/lib/seed/engagement.ts";
 import { createRng, hashSeed, randomInt } from "../src/lib/seed/random.ts";
+import { SIZE_BANDS } from "../src/lib/taxonomy/size-bands.ts";
 import { scorePerson } from "../src/lib/score/person.ts";
 import {
   ICP_MATCH_THRESHOLD,
@@ -626,7 +627,7 @@ const COMPANY_SUFFIXES = [
   "Industries", "Systems", "Manufacturing", "Group", "Werke", "Technologies",
   "Engineering", "Holdings",
 ];
-const SIZE_BANDS = ["11-50", "51-200", "201-500", "501-1000", "1001-5000"];
+
 
 /**
  * Optionally attaches logins to the demo data.
