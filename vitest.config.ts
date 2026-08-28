@@ -15,5 +15,10 @@ export default defineConfig({
     include: ["**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules/**", ".next/**"],
     environment: "node",
+    // Loads .env.local so the access-control tests can reach Supabase.
+    setupFiles: ["./tests/setup-env.ts"],
+    // RLS tests create users and fixtures over the network.
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
   },
 });
