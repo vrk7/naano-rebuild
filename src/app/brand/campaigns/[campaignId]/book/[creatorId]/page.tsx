@@ -73,13 +73,14 @@ export default async function BookCreatorPage({
           </Link>
         </Callout>
       ) : target.walletBalanceCents === null ? (
-        /* Not the same as a zero balance, and it must not read like one: a
-           workspace with no wallet has nothing to commit against and topping up
-           is not built. Saying "$0" would suggest a button that does not exist. */
-        <Callout tone="empty" className="mt-6">
-          This workspace has no wallet, so there is nothing to commit a booking
-          against. Wallets are created with the seeded demo workspace; nothing in
-          the product makes one yet.
+        /* Still not the same as a zero balance. A workspace gets an empty wallet
+           when it is created, so reaching this means the row is genuinely absent
+           rather than empty — and unlike a zero balance, topping up will not fix
+           it, so this does not offer that as the way out. */
+        <Callout tone="warning" className="mt-6">
+          This workspace has no wallet row at all, so there is nothing to commit a
+          booking against. A workspace is created with one, so this is a workspace
+          that predates that or had its wallet removed.
         </Callout>
       ) : (
         <BookingForm

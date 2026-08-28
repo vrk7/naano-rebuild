@@ -46,10 +46,12 @@ export default async function WalletPage() {
     return (
       <Page>
         <PageHeader title="Wallet" />
-        {/* Not the same as a zero balance, and it must not read like one. */}
+        {/* Not the same as a zero balance, and it must not read like one: a
+            zero balance is fixed by topping up and this is not. */}
         <EmptyState title="This workspace has no wallet" className="mt-6">
-          Wallets are created with the seeded demo workspace; nothing in the product
-          makes one yet. There is nothing to commit a booking against.
+          A workspace is created with an empty wallet, so this one predates that or
+          had its wallet removed. There is nothing to commit a booking against, and
+          topping up will not create it.
         </EmptyState>
       </Page>
     );

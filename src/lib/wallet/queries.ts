@@ -54,9 +54,10 @@ function one<T>(value: unknown): T | null {
 /**
  * Returns null when the session has no wallet.
  *
- * Not the same as a zero balance, and the page must not render it as one:
- * wallets are created with the seeded demo workspace and nothing in the product
- * makes one yet, so "$0" would imply a top-up button that would fail.
+ * Not the same as a zero balance, and the page must not render it as one. A
+ * workspace is created with an empty wallet, so a missing row means something
+ * removed it rather than that the balance is nil — and topping up, which fixes
+ * a zero balance, would fail here.
  */
 export async function loadWallet(): Promise<Wallet | null> {
   const supabase = await createClient();
