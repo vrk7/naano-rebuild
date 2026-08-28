@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { applyTransition } from "@/lib/collaboration/transitions";
 import { parseDraftForm, parsePublishForm } from "@/lib/draft/parse";
 import { publishPost, submitDraft } from "@/lib/draft/queries";
+import { simulateEngagement } from "@/lib/posts/simulate";
 
 export type RespondState = { error: string | null };
 
@@ -90,7 +91,28 @@ export async function publishCollaboration(
   const result = await publishPost(collaborationId, url.value);
   if (result.kind === "refused") return { error: result.reason };
 
+  /*
+   * PRODUCT.md step 12, immediately after step 11.
+   *
+   * The post exists the moment the URL is recorded, and step 13 is the screen
+   * this product is for, so a published collaboration with nothing on its post
+   * page is a half-finished publish. Running it here rather than lazily on
+   * first view keeps the write out of a GET, which matters because the brand's
+   * session cannot write these tables at all.
+   *
+   * A refusal is a real outcome, not a failure: a creator whose snapshot has no
+   * facets in some dimension has nothing to draw from, and the post page
+   * showing no engagement is the honest rendering of that. It is deliberately
+   * not turned into an error the creator sees, because publishing did succeed
+   * and there is nothing they could do about it.
+   *
+   * A thrown error is different and is left to propagate. Simulation is
+   * idempotent, so it can be re-run once the cause is fixed.
+   */
+  await simulateEngagement(collaborationId);
+
   revalidatePath("/creator");
   revalidatePath(`/creator/collaborations/${collaborationId}`);
+  revalidatePath("/brand/posts");
   return { error: null };
 }
