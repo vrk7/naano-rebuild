@@ -3,5 +3,18 @@ __pycache__/
 node_modules/
 .DS_Store
 
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# env files
+.env*
+
+# vercel
+.vercel
+
 # NOTE: .agent-logs/ is intentionally NOT ignored. The agent capture log ships
 # with this repo as part of the submission. Do not add it here.
