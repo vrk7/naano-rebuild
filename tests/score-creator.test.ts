@@ -320,7 +320,15 @@ describe("marketplace ordering", () => {
     const sorted = [at(98, "low"), at(40, "high"), at(60, "medium")].sort(
       compareForMarketplace,
     );
-    expect(sorted.map((s) => (s.kind === "scored" ? s.value : null))).toEqual([40, 60, 98]);
+    expect(sorted.map((s) => (s.kind === "scored" ? s.value : null))).toEqual([60, 40, 98]);
+  });
+
+  // The band is low-versus-not-low. A medium score is one the UI prints, so it
+  // has to rank by the printed number; only the scores we refuse to show get
+  // pushed to the bottom regardless of value.
+  it("ranks a medium score above a lower high-confidence one", () => {
+    const sorted = [at(8, "high"), at(68, "medium")].sort(compareForMarketplace);
+    expect(sorted.map((s) => (s.kind === "scored" ? s.value : null))).toEqual([68, 8]);
   });
 
   it("puts unscoreable entries after everything", () => {

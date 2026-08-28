@@ -240,20 +240,22 @@ export function quotableValue(score: CreatorScore): number | null {
   return score.value;
 }
 
-const CONFIDENCE_ORDER: Readonly<Record<Confidence, number>> = {
-  high: 0,
-  medium: 1,
-  low: 2,
-};
-
 /**
  * Marketplace ordering: score descending, low confidence last (PRODUCT.md step
  * 5). Unscoreable entries sort after everything, since there is no number to
  * rank them by.
  *
- * Comparing confidence before value is what puts an unquotable 98 below a
- * quotable 40 — the alternative ranks creators on a number the UI is not
- * allowed to show.
+ * The band is low-versus-not-low, not one band per confidence level. A `low`
+ * score is one `quotableValue` refuses to print, so ranking by it would order
+ * the list on numbers the UI never shows — that is what sinks it to the bottom.
+ * A `medium` score *is* printed, and a number shown on a card has to be the
+ * number the card is sorted by, or the ordering silently means something other
+ * than what the reader sees.
+ *
+ * Sorting medium below high regardless of value was the earlier behaviour and
+ * it is wrong on the seeded data: the best medium-confidence creator scores 68
+ * and would land beneath a high-confidence 8. Confidence is already carried on
+ * the card as its own label; it does not also need to outrank the score.
  */
 export function compareForMarketplace(a: CreatorScore, b: CreatorScore): number {
   const aUnscoreable = a.kind === "unscoreable";
@@ -262,8 +264,8 @@ export function compareForMarketplace(a: CreatorScore, b: CreatorScore): number 
     return Number(aUnscoreable) - Number(bUnscoreable);
   }
 
-  const byConfidence = CONFIDENCE_ORDER[a.confidence] - CONFIDENCE_ORDER[b.confidence];
-  if (byConfidence !== 0) return byConfidence;
+  const byQuotability = Number(a.confidence === "low") - Number(b.confidence === "low");
+  if (byQuotability !== 0) return byQuotability;
 
   return b.value - a.value;
 }
