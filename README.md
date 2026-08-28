@@ -39,6 +39,34 @@ Seeded and simulated data is labelled as such on screen, not only in this file.
 
 ---
 
+## See it running
+
+**https://naano-rebuild-cyan.vercel.app**
+
+Two logins are attached to the seeded demo workspace, and their passwords are
+published on purpose. Without them a reviewer has to register a brand, top up a
+wallet, book a creator, write a draft and publish it before the screen this
+build exists for has anything on it.
+
+| Role | Email | Password |
+|---|---|---|
+| Brand | `demo@naano-rebuild.dev` | `naano-demo-public` |
+| Creator | `demo+creator@naano-rebuild.dev` | `naano-demo-public` |
+
+The brand owns *Atira Industrial*: three ICPs, two campaigns, five published
+collaborations. The claim is quickest to check at `/brand/posts` — open the
+post by **Ursula Jimenez** (376k followers, 251 engagements, **0** of them in
+ICP) next to the one by **Gabriel Duarte** (38k followers, 238 in ICP at $5
+each). `/brand/leads` aggregates every post; `/brand/wallet` shows the ledger
+that explains the balance. The creator account holds one of those same
+collaborations from the other side.
+
+Both accounts are throwaway, on a project that holds nothing but seeded and
+simulated rows, and `npm run db:seed:demo` recreates the workspace from scratch
+— so anything a visitor does to it is one command from being undone.
+
+---
+
 ## Running it
 
 **Prerequisites:** Node 22.18+ (the seed scripts run TypeScript directly) and a
@@ -61,8 +89,9 @@ npm run dev
 
 `db:seed` is the fixture everything is tested against and is required.
 `db:seed:demo` is optional but is the fastest way to see the post page and the
-leads table with data on them; set `SEED_DEMO_EMAIL` and `SEED_DEMO_PASSWORD`
-first if you want a login attached to it.
+leads table with data on them. It attaches the two logins above only when
+`SEED_DEMO_EMAIL` and `SEED_DEMO_PASSWORD` are set — the script hardcodes no
+credential, so your copy gets whatever password you give it, not this one.
 
 **Signing up fresh instead:** the role picker at `/register` is the front door.
 A brand gets an empty wallet, so top it up at `/brand/wallet` before booking.
