@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Field, FormMessage, SubmitButton } from "@/components/auth/field";
+import { ArrowRight } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardBody } from "@/components/ui/card";
+import { Field, FormMessage, SubmitButton } from "@/components/ui/field";
 
 import { submitWebsite, type SetupState } from "./actions";
 
@@ -23,22 +27,28 @@ export function SetupForm({ demoDomain }: { demoDomain: string }) {
   if (state.unavailable) {
     return (
       <div className="mt-8 space-y-4">
-        <div className="rounded-lg border border-border p-5">
-          <p className="text-sm font-medium">Your workspace is ready. The site was not read.</p>
-          <p className="mt-2 text-sm text-pretty text-muted-foreground">{state.unavailable}</p>
-          <p className="mt-2 text-sm text-pretty text-muted-foreground">
-            Nothing was invented to fill the gap: there is no generated profile and
-            there are no ICPs. Write them yourself on the next screen — it is the one
-            step that cannot be skipped, because the match score is worthless without
-            it.
-          </p>
-        </div>
-        <Link
-          href="/brand/icps"
-          className="inline-block rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground"
-        >
-          Set up your ICPs →
-        </Link>
+        <Card>
+          <CardBody>
+            <p className="text-md font-medium">
+              Your workspace is ready. The site was not read.
+            </p>
+            <p className="mt-2 text-sm text-pretty text-muted-foreground">
+              {state.unavailable}
+            </p>
+            <p className="mt-2 text-sm text-pretty text-muted-foreground">
+              Nothing was invented to fill the gap: there is no generated profile and
+              there are no ICPs. Write them yourself on the next screen — it is the one
+              step that cannot be skipped, because the match score is worthless without
+              it.
+            </p>
+          </CardBody>
+        </Card>
+        <Button asChild size="lg">
+          <Link href="/brand/icps">
+            Set up your ICPs
+            <ArrowRight aria-hidden />
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -55,7 +65,7 @@ export function SetupForm({ demoDomain }: { demoDomain: string }) {
       />
 
       <FormMessage error={state.error} />
-      <SubmitButton pending={pending} pendingLabel="Reading your site…">
+      <SubmitButton pending={pending} pendingLabel="Reading your site…" className="w-full">
         Analyse my website
       </SubmitButton>
 

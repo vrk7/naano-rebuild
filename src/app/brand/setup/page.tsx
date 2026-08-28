@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+import { Page, PageHeader } from "@/components/ui/page";
+
 import { FIXTURE_DOMAINS } from "@/lib/brand/fixtures";
 import { loadWorkspace } from "@/lib/brand/queries";
 
@@ -20,17 +22,15 @@ export default async function BrandSetupPage() {
   if (await loadWorkspace()) redirect("/brand");
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-16">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Step 1 of 2
-      </p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your website</h1>
-      <p className="mt-2 text-pretty text-muted-foreground">
-        Everything the marketplace scores against comes from here. We read the page,
-        write down what you sell and to whom, and you correct it on the next screen.
-      </p>
+    <Page width="narrow" className="py-16">
+      <p className="eyebrow">Step 1 of 2</p>
+      <PageHeader
+        className="mt-2"
+        title="Your website"
+        description="Everything the marketplace scores against comes from here. We read the page, write down what you sell and to whom, and you correct it on the next screen."
+      />
 
       <SetupForm demoDomain={FIXTURE_DOMAINS[0]} />
-    </main>
+    </Page>
   );
 }

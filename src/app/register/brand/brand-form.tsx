@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Field, FormMessage, SubmitButton } from "@/components/auth/field";
+import { Field, FormMessage, SubmitButton } from "@/components/ui/field";
 import { LOGIN_PATH } from "@/lib/auth/roles";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/credentials";
 

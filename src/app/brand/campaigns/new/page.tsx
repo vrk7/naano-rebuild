@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { BackLink, Page, PageHeader } from "@/components/ui/page";
 import { SUPPORTED_REGIONS } from "@/lib/geo/regions";
 import { buildTaxonomyLookup } from "@/lib/score/labels";
 
@@ -18,23 +17,15 @@ export default function NewCampaignPage() {
   })).sort((a, b) => a.label.localeCompare(b.label));
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link
-        href="/brand"
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← Campaigns
-      </Link>
-
-      <header className="mt-4">
-        <h1 className="text-2xl font-semibold tracking-tight">New campaign</h1>
-        <p className="mt-1 text-pretty text-muted-foreground">
-          The campaign comes before the marketplace, so a creator is always booked
-          against something. The brief can be one line.
-        </p>
-      </header>
+    <Page width="narrow">
+      <BackLink href="/brand">Campaigns</BackLink>
+      <PageHeader
+        className="mt-3"
+        title="New campaign"
+        description="The campaign comes before the marketplace, so a creator is always booked against something. The brief can be one line."
+      />
 
       <CampaignForm regions={regions} />
-    </main>
+    </Page>
   );
 }

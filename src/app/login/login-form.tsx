@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Field, FormMessage, SubmitButton } from "@/components/auth/field";
+import { Field, FormMessage, SubmitButton } from "@/components/ui/field";
 import { REGISTER_PATH, RETURN_TO_PARAM } from "@/lib/auth/roles";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/credentials";
 
@@ -28,9 +28,9 @@ export function LoginForm({ returnTo }: { returnTo: string | null }) {
 
   return (
     <div className="w-full max-w-sm space-y-6">
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-        <p className="text-sm text-muted-foreground">Welcome back.</p>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-[-0.014em]">Sign in</h1>
+        <p className="text-md text-muted-foreground">Welcome back.</p>
       </div>
 
       <form action={formAction} className="space-y-4">
@@ -47,7 +47,9 @@ export function LoginForm({ returnTo }: { returnTo: string | null }) {
         />
 
         <FormMessage error={state.error} />
-        <SubmitButton pending={pending}>Sign in</SubmitButton>
+        <SubmitButton pending={pending} className="w-full">
+          Sign in
+        </SubmitButton>
       </form>
 
       <p className="text-sm text-muted-foreground">

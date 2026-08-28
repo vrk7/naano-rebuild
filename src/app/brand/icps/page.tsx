@@ -1,6 +1,11 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
+import { Card, CardBody, CardHeader, CardMeta, CardTitle } from "@/components/ui/card";
+import { Page, PageHeader } from "@/components/ui/page";
 import { MAX_RANK, MIN_RANK } from "@/lib/brand/icp-form";
 import { loadIcpWorkbench } from "@/lib/brand/queries";
 import { SUPPORTED_REGIONS } from "@/lib/geo/regions";
@@ -52,45 +57,44 @@ export default async function IcpEditorPage() {
   ).length;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Who {workspace.name} sells to</h1>
-        <p className="mt-2 max-w-2xl text-pretty text-muted-foreground">
-          Three ideal customers, as targets rather than prose. Every creator in the
-          marketplace is scored by how much of their audience falls inside these —
-          dimension by dimension, with the working shown. Get them wrong and the
-          score is confidently wrong, which is worse than having none.
-        </p>
-      </header>
+    <Page>
+      <PageHeader
+        title={`Who ${workspace.name} sells to`}
+        description="Three ideal customers, as targets rather than prose. Every creator in the marketplace is scored by how much of their audience falls inside these — dimension by dimension, with the working shown. Get them wrong and the score is confidently wrong, which is worse than having none."
+      />
 
       {profile ? (
-        <section className="mt-8 rounded-xl border border-border bg-muted/30 p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-sm font-medium">{profile.companyName}</h2>
-            <span className="text-xs text-muted-foreground">
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>{profile.companyName}</CardTitle>
+            <CardMeta>
               {profile.source === "auto" ? "Generated from your website" : "Edited"}
               {profile.sizeBand ? ` · ${profile.sizeBand} people` : ""}
-              {profile.industryId
-                ? ` · ${taxonomy.labelForTopicId(profile.industryId)}`
-                : ""}
-            </span>
-          </div>
-          {profile.tagline ? <p className="mt-1 text-sm">{profile.tagline}</p> : null}
-          {profile.valueProp ? (
-            <p className="mt-2 text-sm text-pretty text-muted-foreground">{profile.valueProp}</p>
+              {profile.industryId ? ` · ${taxonomy.labelForTopicId(profile.industryId)}` : ""}
+            </CardMeta>
+          </CardHeader>
+          {profile.tagline || profile.valueProp ? (
+            <CardBody>
+              {profile.tagline ? <p className="text-md">{profile.tagline}</p> : null}
+              {profile.valueProp ? (
+                <p className="mt-1.5 max-w-prose text-sm text-pretty text-muted-foreground">
+                  {profile.valueProp}
+                </p>
+              ) : null}
+            </CardBody>
           ) : null}
-        </section>
+        </Card>
       ) : (
         /* Generation did not run or did not produce one. Saying so beats a
            panel of placeholders that reads like a profile nobody wrote. */
-        <p className="mt-8 rounded-xl border border-dashed border-border p-5 text-sm text-pretty text-muted-foreground">
+        <Callout tone="empty" className="mt-6">
           There is no generated brand profile for {workspace.name}
           {workspace.website ? ` (${workspace.website})` : ""}. Nothing was invented
           to fill the gap, so the ICPs below are yours to write.
-        </p>
+        </Callout>
       )}
 
-      <div className="mt-8 space-y-6">
+      <div className="mt-6 space-y-4">
         {ranks.map((rank) => {
           const icp = byRank.get(rank);
           return (
@@ -109,19 +113,19 @@ export default async function IcpEditorPage() {
         })}
       </div>
 
-      <section className="mt-10 border-t border-border pt-6">
-        <p className="text-sm text-pretty text-muted-foreground">
+      <section className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+        <p className="max-w-prose text-sm text-pretty text-muted-foreground">
           {targeted === 0
             ? "No ICP has any targets yet, so the marketplace has nothing to score against and will say so rather than rank creators at zero."
             : `${targeted} of ${ranks.length} are active and have targets. Creators are scored against each one, and the marketplace shows the best.`}
         </p>
-        <Link
-          href="/brand/creators"
-          className="mt-3 inline-block rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground"
-        >
-          See who matches →
-        </Link>
+        <Button asChild size="lg">
+          <Link href="/brand/creators">
+            See who matches
+            <ArrowRight aria-hidden />
+          </Link>
+        </Button>
       </section>
-    </main>
+    </Page>
   );
 }

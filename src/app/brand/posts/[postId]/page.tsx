@@ -1,7 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CompaniesTable } from "@/components/post/companies-table";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { Metric, MetricRow } from "@/components/ui/metric";
+import { BackLink, Page, PageHeader, SectionHeader } from "@/components/ui/page";
 import { PeopleTable } from "@/components/post/people-table";
 import { PostEconomicsPanel } from "@/components/post/post-economics-panel";
 import { loadPostDetail } from "@/lib/posts/queries";
@@ -21,103 +24,87 @@ export default async function PostPage({ params }: PageProps<"/brand/posts/[post
   });
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <Link
-        href="/brand/posts"
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← All posts
-      </Link>
+    <Page width="wide">
+      <BackLink href="/brand/posts">All posts</BackLink>
 
-      <header className="mt-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{post.creator.name}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {post.creator.headline} · {post.creator.followers.toLocaleString()} followers
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {/* Not a link: the campaign page is not built yet, and a link to a 404
-              is worse than plain text. */}
-          Published {published} · {post.campaign.name}
-        </p>
-      </header>
+      <PageHeader
+        className="mt-3"
+        title={post.creator.name}
+        description={`${post.creator.headline} · ${post.creator.followers.toLocaleString()} followers`}
+      />
+      <p className="mt-1 text-sm text-muted-foreground">
+        {/* Not a link: the campaign page is not built yet, and a link to a 404
+            is worse than plain text. */}
+        Published {published} · {post.campaign.name}
+      </p>
 
-      <section className="mt-8 grid gap-6 md:grid-cols-[minmax(0,1fr)_18rem]">
-        <article className="rounded-lg border border-border p-5">
-          <h2 className="text-sm font-medium">The post</h2>
-          {post.body ? (
-            <p className="mt-3 whitespace-pre-line text-sm leading-relaxed">{post.body}</p>
-          ) : (
-            <p className="mt-3 text-sm text-muted-foreground">No body recorded.</p>
-          )}
-
-          <dl className="mt-5 grid grid-cols-4 gap-3 border-t border-border pt-4 text-center">
-            {[
-              ["Impressions", post.impressions],
-              ["Reactions", post.reactions],
-              ["Comments", post.comments],
-              ["Reposts", post.reposts],
-            ].map(([label, value]) => (
-              <div key={String(label)}>
-                <dt className="text-xs text-muted-foreground">{label}</dt>
-                <dd className="mt-0.5 text-base font-medium tabular-nums">
-                  {Number(value).toLocaleString()}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </article>
+      <section className="mt-6 grid items-start gap-5 md:grid-cols-[minmax(0,1fr)_19rem]">
+        <Card>
+          <CardHeader>
+            <CardTitle>The post</CardTitle>
+          </CardHeader>
+          <CardBody>
+            {post.body ? (
+              <p className="text-md whitespace-pre-line text-pretty leading-relaxed">
+                {post.body}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">No body recorded.</p>
+            )}
+          </CardBody>
+          <MetricRow className="rounded-none rounded-b-lg border-x-0 border-b-0">
+            <Metric label="Impressions" value={post.impressions.toLocaleString()} />
+            <Metric label="Reactions" value={post.reactions.toLocaleString()} />
+            <Metric label="Comments" value={post.comments.toLocaleString()} />
+            <Metric label="Reposts" value={post.reposts.toLocaleString()} />
+          </MetricRow>
+        </Card>
 
         <PostEconomicsPanel economics={post.economics} />
       </section>
 
-      <section className="mt-10">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">People who engaged</h2>
-          <span className="text-sm text-muted-foreground">
-            {post.economics.engagedPeople} people · {post.economics.matchedPeople} matching an ICP
-          </span>
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Simulated engagement. Every person here was generated from this creator&rsquo;s
-          audience snapshot, not scraped from LinkedIn.
-        </p>
+      <section className="mt-8">
+        <SectionHeader
+          title="People who engaged"
+          meta={`${post.economics.engagedPeople} people · ${post.economics.matchedPeople} matching an ICP`}
+          description="Simulated engagement. Every person here was generated from this creator’s audience snapshot, not scraped from LinkedIn."
+        />
         <PeopleTable people={post.people} />
       </section>
 
-      <section className="mt-10">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Companies</h2>
-          <span className="text-sm text-muted-foreground">
-            {post.companies.length} employers
-          </span>
-        </div>
+      <section className="mt-8">
+        <SectionHeader title="Companies" meta={`${post.companies.length} employers`} />
         <CompaniesTable companies={post.companies} />
       </section>
 
-      <section className="mt-10 rounded-lg border border-border p-5">
-        <h2 className="text-sm font-medium">Written against</h2>
-        {post.brief ? (
-          <>
-            <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Written against</CardTitle>
+          {post.brief ? (
+            <Badge variant="neutral">
               {post.brief.mode === "creative_freedom" ? "Creative freedom" : "Specific brief"}
+            </Badge>
+          ) : null}
+        </CardHeader>
+        <CardBody>
+          {post.brief?.body ? (
+            <p className="text-md whitespace-pre-line text-pretty leading-relaxed">
+              {post.brief.body}
             </p>
-            {post.brief.body ? (
-              <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">
-                {post.brief.body}
-              </p>
-            ) : null}
-          </>
-        ) : (
-          <p className="mt-2 text-sm text-muted-foreground">No brief recorded.</p>
-        )}
-        {/* PRODUCT.md step 13 asks for a link back to the collaboration. The
-            collaboration page belongs to a later step and does not exist, so
-            this states what it can and stops short of a dead link. */}
-        <p className="mt-4 text-sm text-muted-foreground">
-          Collaboration {post.collaboration.id.slice(0, 8)} · {post.collaboration.state}
-          {post.externalUrl ? (
-            <>
-              {" · "}
+          ) : (
+            <p className="text-sm text-muted-foreground">No brief recorded.</p>
+          )}
+
+          {/* PRODUCT.md step 13 asks for a link back to the collaboration. The
+              collaboration page belongs to a later step and does not exist, so
+              this states what it can and stops short of a dead link. */}
+          <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            <span>
+              Collaboration{" "}
+              <span className="font-mono text-xs">{post.collaboration.id.slice(0, 8)}</span>
+            </span>
+            <Badge variant="outline">{post.collaboration.state}</Badge>
+            {post.externalUrl ? (
               <a
                 href={post.externalUrl}
                 rel="noreferrer noopener"
@@ -126,10 +113,10 @@ export default async function PostPage({ params }: PageProps<"/brand/posts/[post
               >
                 View on LinkedIn
               </a>
-            </>
-          ) : null}
-        </p>
-      </section>
-    </main>
+            ) : null}
+          </p>
+        </CardBody>
+      </Card>
+    </Page>
   );
 }

@@ -22,9 +22,12 @@ export default function RegisterLayout({ children }: LayoutProps<"/register">) {
         </div>
       </div>
 
+      {/* The one full-bleed accent surface in the product. It is the front
+          door, it appears once, and it is why the accent can stay scarce
+          everywhere behind the login. */}
       <aside className="hidden bg-brand p-12 text-brand-foreground lg:flex lg:items-center">
         <div className="max-w-md">
-          <p className="text-4xl font-semibold tracking-tight text-balance">
+          <p className="text-4xl font-semibold tracking-[-0.021em] text-balance">
             One platform. Two sides.
           </p>
           <p className="mt-5 text-lg text-pretty opacity-90">

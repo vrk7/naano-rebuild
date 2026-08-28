@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/callout";
+import { Page, PageHeader } from "@/components/ui/page";
 import { STATE_LABEL, needsAction } from "@/lib/collaboration/machine";
 import { loadCreatorCollaborations } from "@/lib/collaboration/creator-inbox";
 import { formatCents } from "@/lib/posts/metrics";
@@ -20,15 +23,15 @@ export default async function CreatorHome() {
   const now = new Date();
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold tracking-tight">Collaborations</h1>
+    <Page>
+      <PageHeader title="Collaborations" />
 
       {collaborations.length === 0 ? (
-        <p className="mt-4 text-sm text-muted-foreground">
-          Nothing here yet. Collaborations appear once a brand books you.
-        </p>
+        <EmptyState title="Nothing here yet" className="mt-6">
+          Collaborations appear once a brand books you.
+        </EmptyState>
       ) : (
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-6 space-y-2">
           {collaborations.map((collaboration) => {
             const respondBy = collaboration.respondBy ? new Date(collaboration.respondBy) : null;
             const lapsed =
@@ -38,21 +41,20 @@ export default async function CreatorHome() {
               <li key={collaboration.id}>
                 <Link
                   href={`/creator/collaborations/${collaboration.id}`}
-                  className="block rounded-xl border border-border p-4 transition-colors hover:bg-muted/40"
+                  className="block rounded-lg border border-border p-3.5 transition-colors outline-none hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/25"
                 >
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <span className="font-medium">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                    {/* The fee is the first thing a creator looks for, so it is
+                        the row's headline and it is tabular — this is a list
+                        that gets compared down the column. */}
+                    <span className="num text-md font-medium tabular-nums">
                       {formatCents(collaboration.priceCents)} for one post
                     </span>
-                    <span className="flex items-center gap-2 text-xs">
+                    <span className="flex items-center gap-1.5">
                       {needsAction(collaboration.state, "creator") ? (
-                        <span className="rounded-full bg-brand-soft px-2 py-0.5 font-medium text-brand">
-                          Needs you
-                        </span>
+                        <Badge variant="accent">Needs you</Badge>
                       ) : null}
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-                        {STATE_LABEL[collaboration.state]}
-                      </span>
+                      <Badge variant="neutral">{STATE_LABEL[collaboration.state]}</Badge>
                     </span>
                   </div>
 
@@ -81,7 +83,7 @@ export default async function CreatorHome() {
           })}
         </ul>
       )}
-    </main>
+    </Page>
   );
 }
 

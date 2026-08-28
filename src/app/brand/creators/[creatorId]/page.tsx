@@ -2,6 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AudiencePanel } from "@/components/creator/audience-panel";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
+import { BackLink, Page, PageHeader, SectionHeader } from "@/components/ui/page";
+import { cn } from "@/lib/utils";
 import { ScoreBreakdown } from "@/components/creator/score-breakdown";
 import { ConfidenceNote, ScoreBadge } from "@/components/marketplace/score-badge";
 import { formatCents } from "@/lib/posts/metrics";
@@ -46,13 +51,13 @@ export default async function CreatorProfilePage({
 
   if (best === null) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-2xl font-semibold tracking-tight">{creator.displayName}</h1>
-        <p className="mt-4 text-sm text-muted-foreground">
+      <Page>
+        <PageHeader title={creator.displayName} />
+        <Callout tone="empty" className="mt-6">
           This workspace has no active ICPs, so there is nothing to score this
           creator against.
-        </p>
-      </main>
+        </Callout>
+      </Page>
     );
   }
 
@@ -72,23 +77,22 @@ export default async function CreatorProfilePage({
   });
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <Link
+    <Page width="wide">
+      <BackLink
         href={campaign ? `/brand/campaigns/${campaign.id}/creators` : "/brand/creators"}
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
       >
-        ← {campaign ? `Creators for ${campaign.name}` : "All creators"}
-      </Link>
+        {campaign ? `Creators for ${campaign.name}` : "All creators"}
+      </BackLink>
 
-      <header className="mt-4 flex flex-wrap items-start gap-6">
+      <header className="mt-3 flex flex-wrap items-start gap-5">
         <ScoreBadge score={selected.score} size="large" />
 
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{creator.displayName}</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.014em]">{creator.displayName}</h1>
           {creator.headline ? (
-            <p className="mt-1 text-sm text-muted-foreground">{creator.headline}</p>
+            <p className="text-md mt-0.5 text-muted-foreground">{creator.headline}</p>
           ) : null}
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="num mt-1 text-sm tabular-nums text-muted-foreground">
             {creator.followers.toLocaleString()} followers
             {country ? ` · ${country}` : ""}
             {creator.priceCents !== null
@@ -98,19 +102,16 @@ export default async function CreatorProfilePage({
           {creator.topics.length > 0 ? (
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {creator.topics.map((topicId) => (
-                <li
-                  key={topicId}
-                  className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground"
-                >
-                  {taxonomy.labelForTopicId(topicId)}
+                <li key={topicId}>
+                  <Badge variant="outline">{taxonomy.labelForTopicId(topicId)}</Badge>
                 </li>
               ))}
             </ul>
           ) : null}
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <ConfidenceNote score={selected.score} />
-            <span className="text-xs text-muted-foreground">
+            <span className="num text-xs tabular-nums text-muted-foreground">
               {creator.sampleSize.toLocaleString()} people observed across{" "}
               {creator.postsAnalyzed} posts · snapshot {captured}
             </span>
@@ -132,13 +133,12 @@ export default async function CreatorProfilePage({
       ) : null}
 
       {campaign ? (
-        <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <Link
-            href={`/brand/campaigns/${campaign.id}/book/${creator.id}`}
-            className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground"
-          >
-            Book on {campaign.name}
-          </Link>
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Button asChild size="lg">
+            <Link href={`/brand/campaigns/${campaign.id}/book/${creator.id}`}>
+              Book on {campaign.name}
+            </Link>
+          </Button>
           <span className="text-xs text-pretty text-muted-foreground">
             Price, the date it has to go out by, and whether you approve the draft.
           </span>
@@ -153,13 +153,11 @@ export default async function CreatorProfilePage({
         </p>
       )}
 
-      <section className="mt-10">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {isWithheld ? "What a score would need" : "How the score was built"}
-          </h2>
-          <span className="text-sm text-muted-foreground">against {selected.icp.label}</span>
-        </div>
+      <section className="mt-8">
+        <SectionHeader
+          title={isWithheld ? "What a score would need" : "How the score was built"}
+          meta={`against ${selected.icp.label}`}
+        />
 
         <IcpTabs creatorId={creator.id} scores={scores} selectedId={selected.icp.id} />
 
@@ -183,13 +181,11 @@ export default async function CreatorProfilePage({
         )}
       </section>
 
-      <section className="mt-10">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">Who this audience is</h2>
-          <span className="text-sm text-muted-foreground">
-            Highlighted rows are the ones {selected.icp.label} asked for
-          </span>
-        </div>
+      <section className="mt-8">
+        <SectionHeader
+          title="Who this audience is"
+          meta={`Highlighted rows are the ones ${selected.icp.label} asked for`}
+        />
         <AudiencePanel
           facets={snapshot.facets}
           targets={icp.targets}
@@ -204,19 +200,19 @@ export default async function CreatorProfilePage({
         ) : null}
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold tracking-tight">Recent posts</h2>
+      <section className="mt-8">
+        <SectionHeader title="Recent posts" meta={posts.length > 0 ? `${posts.length}` : undefined} />
         {posts.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             No posts recorded for this creator. Posts land here once a collaboration
             with them is published.
           </p>
         ) : (
-          <ul className="mt-4 space-y-3">
+          <ul className="space-y-2">
             {posts.map((post) => (
-              <li key={post.id} className="rounded-lg border border-border p-4">
+              <li key={post.id} className="rounded-lg border border-border p-3.5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-xs text-muted-foreground">
+                  <span className="num text-xs tabular-nums text-muted-foreground">
                     {new Date(post.publishedAt).toLocaleDateString("en-GB", {
                       day: "numeric",
                       month: "short",
@@ -224,21 +220,23 @@ export default async function CreatorProfilePage({
                     })}
                     {post.isSponsored ? " · sponsored" : ""}
                   </span>
-                  <span className="text-xs tabular-nums text-muted-foreground">
+                  <span className="num text-xs tabular-nums text-muted-foreground">
                     {post.impressions.toLocaleString()} impressions ·{" "}
                     {post.reactions.toLocaleString()} reactions ·{" "}
                     {post.comments.toLocaleString()} comments
                   </span>
                 </div>
                 {post.body ? (
-                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed">{post.body}</p>
+                  <p className="mt-2 line-clamp-3 text-sm text-pretty leading-relaxed">
+                    {post.body}
+                  </p>
                 ) : null}
               </li>
             ))}
           </ul>
         )}
       </section>
-    </main>
+    </Page>
   );
 }
 
@@ -276,11 +274,13 @@ function Verdict({
   const value = quotableValue(score);
 
   return (
-    <div className="mt-6 rounded-xl border border-border bg-muted/30 p-5">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="mt-5 rounded-lg border border-border bg-muted/50 px-4 py-3.5">
+      <p className="eyebrow">
         {value === null ? "Why there is no score" : `Why this scores ${value}`}
       </p>
-      <p className="mt-1.5 text-lg text-pretty">{headline}</p>
+      {/* The one sentence the whole page is built to produce, so it is the
+          largest text on the screen after the figure itself. */}
+      <p className="mt-1 max-w-prose text-lg text-pretty">{headline}</p>
     </div>
   );
 }
@@ -313,11 +313,9 @@ function CampaignReachNote({
         : `${Math.round(reach.share * 100)}% of this audience is in ${regions.join(", ")}.`;
 
   return (
-    <div className="mt-3 rounded-xl border border-border p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Where {campaignName} is running
-      </p>
-      <p className="mt-1 text-sm text-pretty">{detail}</p>
+    <div className="mt-2.5 rounded-lg border border-border px-4 py-3">
+      <p className="eyebrow">Where {campaignName} is running</p>
+      <p className="text-md mt-1 text-pretty">{detail}</p>
     </div>
   );
 }
@@ -341,7 +339,7 @@ function IcpTabs({
   if (scores.length <= 1) return null;
 
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5">
       {scores.map((entry) => {
         const value = quotableValue(entry.score);
         const isSelected = entry.icp.id === selectedId;
@@ -356,14 +354,20 @@ function IcpTabs({
                 ? `Not enough data to score against ${entry.icp.label}`
                 : `Scores ${value} out of 100 against ${entry.icp.label}`
             }
-            className={
+            className={cn(
+              "inline-flex items-center rounded-md border px-2.5 py-1 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25",
               isSelected
-                ? "rounded-lg border border-foreground/20 bg-muted px-3 py-1.5 text-sm font-medium"
-                : "rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted/50"
-            }
+                ? "border-brand/30 bg-brand-soft font-medium text-brand"
+                : "border-border text-muted-foreground hover:bg-muted",
+            )}
           >
             {entry.icp.label}
-            <span className="ml-2 border-l border-border pl-2 tabular-nums opacity-70">
+            <span
+              className={cn(
+                "num ml-2 border-l pl-2 tabular-nums",
+                isSelected ? "border-brand/25" : "border-border",
+              )}
+            >
               {value === null ? "n/a" : value}
             </span>
           </Link>

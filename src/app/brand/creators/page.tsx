@@ -1,4 +1,5 @@
 import { MarketplaceView } from "@/components/marketplace/marketplace-view";
+import { Page } from "@/components/ui/page";
 import { loadMarketplace } from "@/lib/marketplace/queries";
 import { DEFAULT_SORT, isSort } from "@/lib/marketplace/ranking";
 
@@ -27,7 +28,7 @@ export default async function MarketplacePage({
   if (icps.length === 0) return <NoIcps />;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
+    <Page>
       <MarketplaceView
         creators={creators}
         icpCount={icps.length}
@@ -38,6 +39,6 @@ export default async function MarketplacePage({
         campaign={null}
         inRegionOnly={false}
       />
-    </main>
+    </Page>
   );
 }

@@ -1,8 +1,13 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { BookedList } from "@/components/collaboration/booked-list";
 import { BriefPanel } from "@/components/campaign/brief-panel";
+import { Badge } from "@/components/ui/badge";
+import { Callout } from "@/components/ui/callout";
+import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { BackLink, Page, SectionHeader } from "@/components/ui/page";
 import { loadCampaign } from "@/lib/campaign/queries";
 import { loadCampaignCollaborations } from "@/lib/collaboration/queries";
 import { buildTaxonomyLookup } from "@/lib/score/labels";
@@ -33,25 +38,20 @@ export default async function CampaignPage({
   });
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link
-        href="/brand"
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← Campaigns
-      </Link>
+    <Page>
+      <BackLink href="/brand">Campaigns</BackLink>
 
-      <header className="mt-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{campaign.name}</h1>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            {campaign.status}
-          </span>
+      <header className="mt-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="text-2xl font-semibold tracking-[-0.014em]">{campaign.name}</h1>
+          <Badge variant="outline">{campaign.status}</Badge>
         </div>
         {campaign.objective ? (
-          <p className="mt-2 text-pretty text-muted-foreground">{campaign.objective}</p>
+          <p className="text-md mt-1.5 max-w-prose text-pretty text-muted-foreground">
+            {campaign.objective}
+          </p>
         ) : null}
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-1.5 text-sm text-muted-foreground">
           Created {created} ·{" "}
           {campaign.geos.length === 0
             ? "no geographic restriction"
@@ -62,7 +62,7 @@ export default async function CampaignPage({
         </p>
       </header>
 
-      <div className="mt-8">
+      <div className="mt-6">
         {campaign.brief ? (
           <BriefPanel
             mode={campaign.brief.mode}
@@ -74,17 +74,17 @@ export default async function CampaignPage({
              so reaching this means a row was written by something else — the
              seed, or a failed insert that could not be rolled back. Say that
              rather than render an empty brief panel. */
-          <p className="rounded-lg border border-dashed border-border p-5 text-sm text-pretty text-muted-foreground">
+          <Callout tone="warning">
             This campaign has no readable brief. Nothing in the product can create
             that state, so the row was written elsewhere or its mode is one this
             build does not have.
-          </p>
+          </Callout>
         )}
       </div>
 
       {collaborations.length > 0 ? (
         <section className="mt-8">
-          <h2 className="text-sm font-medium">Booked</h2>
+          <SectionHeader title="Booked" meta={`${collaborations.length}`} />
           <BookedList
             collaborations={collaborations}
             campaignId={campaign.id}
@@ -93,23 +93,28 @@ export default async function CampaignPage({
         </section>
       ) : null}
 
-      <section className="mt-8 rounded-lg border border-border p-5">
-        <h2 className="text-sm font-medium">Next</h2>
-        <p className="mt-2 text-sm text-pretty text-muted-foreground">
-          Creators scored against your ICPs, each showing how much of their audience
-          is actually in{" "}
-          {campaign.geos.length === 0
-            ? "the regions you are running in — this campaign names none, so nothing is filtered by geography"
-            : campaign.geos.map((code) => taxonomy.labelFor("geo", code)).join(", ")}
-          .
-        </p>
-        <Link
-          href={`/brand/campaigns/${campaign.id}/creators`}
-          className="mt-3 inline-block text-sm font-medium underline underline-offset-4"
-        >
-          Find creators for this campaign →
-        </Link>
-      </section>
-    </main>
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Next</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <p className="max-w-prose text-sm text-pretty text-muted-foreground">
+            Creators scored against your ICPs, each showing how much of their audience
+            is actually in{" "}
+            {campaign.geos.length === 0
+              ? "the regions you are running in — this campaign names none, so nothing is filtered by geography"
+              : campaign.geos.map((code) => taxonomy.labelFor("geo", code)).join(", ")}
+            .
+          </p>
+          <Link
+            href={`/brand/campaigns/${campaign.id}/creators`}
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand underline-offset-4 outline-none hover:underline focus-visible:underline"
+          >
+            Find creators for this campaign
+            <ArrowRight aria-hidden className="size-3.5" />
+          </Link>
+        </CardBody>
+      </Card>
+    </Page>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 
-import { FormMessage } from "@/components/auth/field";
+import { Button } from "@/components/ui/button";
+import { FormMessage } from "@/components/ui/field";
 
 import { respond, type RespondState } from "./actions";
 
@@ -29,27 +30,22 @@ export function RespondForm({
 
   return (
     <form action={formAction} className="mt-6 space-y-3">
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-2">
         {canAccept ? (
-          <button
-            type="submit"
-            name="decision"
-            value="accept"
-            disabled={pending}
-            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground disabled:opacity-60"
-          >
+          <Button type="submit" name="decision" value="accept" size="lg" disabled={pending}>
             {pending ? "Working…" : "Accept and start drafting"}
-          </button>
+          </Button>
         ) : null}
-        <button
+        <Button
           type="submit"
           name="decision"
           value="decline"
+          size="lg"
+          variant="outline"
           disabled={pending}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium disabled:opacity-60"
         >
           Decline
-        </button>
+        </Button>
       </div>
       <FormMessage error={state.error} />
     </form>

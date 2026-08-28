@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MarketplaceView } from "@/components/marketplace/marketplace-view";
+import { BackLink, Page } from "@/components/ui/page";
 import { NoIcps } from "@/app/brand/creators/no-icps";
 import { loadCampaign } from "@/lib/campaign/queries";
 import { loadMarketplace } from "@/lib/marketplace/queries";
@@ -52,15 +52,10 @@ export default async function CampaignMarketplacePage({
   if (icps.length === 0) return <NoIcps />;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      <Link
-        href={`/brand/campaigns/${campaign.id}`}
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← {campaign.name}
-      </Link>
+    <Page>
+      <BackLink href={`/brand/campaigns/${campaign.id}`}>{campaign.name}</BackLink>
 
-      <div className="mt-4">
+      <div className="mt-3">
         <MarketplaceView
           creators={creators}
           icpCount={icps.length}
@@ -76,6 +71,6 @@ export default async function CampaignMarketplacePage({
           inRegionOnly={inRegionOnly}
         />
       </div>
-    </main>
+    </Page>
   );
 }

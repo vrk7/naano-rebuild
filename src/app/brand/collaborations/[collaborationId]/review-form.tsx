@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 
-import { FormMessage } from "@/components/auth/field";
+import { Button } from "@/components/ui/button";
+import { FormMessage, Textarea } from "@/components/ui/field";
 
 import { reviewDraft, type ReviewState } from "./actions";
 
@@ -24,34 +25,31 @@ export function ReviewForm({ collaborationId }: { collaborationId: string }) {
 
   return (
     <form action={formAction} className="mt-4 space-y-3">
-      <textarea
+      <Textarea
         name="note"
         rows={3}
         maxLength={2000}
         aria-label="What needs changing"
         placeholder="What needs changing? Required if you send it back — it is the only thing the creator gets."
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="submit"
-          name="decision"
-          value="approve"
-          disabled={pending}
-          className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground disabled:opacity-60"
-        >
+      {/* Approve is the primary; sending back is an outline button rather than
+          a second filled one. Two equally-weighted buttons make the reader stop
+          and work out which is which every time. */}
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" name="decision" value="approve" size="lg" disabled={pending}>
           {pending ? "Working…" : "Approve"}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           name="decision"
           value="request_changes"
+          size="lg"
+          variant="outline"
           disabled={pending}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium disabled:opacity-60"
         >
           Send back with the note
-        </button>
+        </Button>
       </div>
 
       <FormMessage error={state.error} />

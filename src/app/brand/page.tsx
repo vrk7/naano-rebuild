@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/callout";
+import { Page, PageHeader } from "@/components/ui/page";
 import { loadCampaigns } from "@/lib/campaign/queries";
 import { loadWorkspace } from "@/lib/brand/queries";
 import { buildTaxonomyLookup } from "@/lib/score/labels";
@@ -27,37 +31,40 @@ export default async function BrandHome() {
   const taxonomy = buildTaxonomyLookup([]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Campaigns</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            A campaign and its brief exist before anyone is booked.
-          </p>
-        </div>
-        <Link
-          href="/brand/campaigns/new"
-          className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground"
-        >
-          New campaign
-        </Link>
-      </header>
+    <Page>
+      <PageHeader
+        title="Campaigns"
+        description="A campaign and its brief exist before anyone is booked."
+        actions={
+          <Button asChild size="lg">
+            <Link href="/brand/campaigns/new">New campaign</Link>
+          </Button>
+        }
+      />
 
       {campaigns.length === 0 ? (
-        <p className="mt-8 rounded-lg border border-dashed border-border p-6 text-sm text-pretty text-muted-foreground">
-          No campaigns yet. Start one — the brief can be a single line.
-        </p>
+        <EmptyState
+          title="No campaigns yet"
+          className="mt-6"
+          action={
+            <Button asChild size="lg">
+              <Link href="/brand/campaigns/new">Start one</Link>
+            </Button>
+          }
+        >
+          The brief can be a single line.
+        </EmptyState>
       ) : (
-        <ul className="mt-8 space-y-3">
+        <ul className="mt-6 space-y-2">
           {campaigns.map((campaign) => (
             <li key={campaign.id}>
               <Link
                 href={`/brand/campaigns/${campaign.id}`}
-                className="block rounded-xl border border-border p-4 transition-colors hover:bg-muted/40"
+                className="block rounded-lg border border-border p-3.5 transition-colors outline-none hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/25"
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <span className="font-medium">{campaign.name}</span>
-                  <span className="text-xs text-muted-foreground">{campaign.status}</span>
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                  <span className="text-md font-medium">{campaign.name}</span>
+                  <Badge variant="outline">{campaign.status}</Badge>
                 </div>
 
                 {campaign.objective ? (
@@ -85,6 +92,6 @@ export default async function BrandHome() {
           ))}
         </ul>
       )}
-    </main>
+    </Page>
   );
 }

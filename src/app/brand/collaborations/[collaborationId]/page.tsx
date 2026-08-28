@@ -1,8 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BriefPanel } from "@/components/campaign/brief-panel";
 import { DraftPanel } from "@/components/draft/draft-panel";
+import { Badge } from "@/components/ui/badge";
+import { Callout } from "@/components/ui/callout";
+import { BackLink, Page, SectionHeader } from "@/components/ui/page";
 import { STATE_LABEL, needsAction, type CollaborationState } from "@/lib/collaboration/machine";
 import { loadCollaboration, loadEvents, type CollaborationEvent } from "@/lib/collaboration/queries";
 import { loadDrafts, loadPost } from "@/lib/draft/queries";
@@ -45,29 +47,20 @@ export default async function BrandCollaborationPage({
   const yourTurn = needsAction(collaboration.state, "brand");
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link
-        href={`/brand/campaigns/${collaboration.campaign.id}`}
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← {collaboration.campaign.name}
-      </Link>
+    <Page>
+      <BackLink href={`/brand/campaigns/${collaboration.campaign.id}`}>
+        {collaboration.campaign.name}
+      </BackLink>
 
-      <header className="mt-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
+      <header className="mt-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="text-2xl font-semibold tracking-[-0.014em]">
             {collaboration.creator.displayName}
           </h1>
-          {yourTurn ? (
-            <span className="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand">
-              Waiting on you
-            </span>
-          ) : null}
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            {STATE_LABEL[collaboration.state]}
-          </span>
+          {yourTurn ? <Badge variant="accent">Waiting on you</Badge> : null}
+          <Badge variant="neutral">{STATE_LABEL[collaboration.state]}</Badge>
         </div>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="num mt-1.5 text-sm tabular-nums text-muted-foreground">
           {formatCents(collaboration.priceCents)} committed
           {collaboration.postBy ? ` · post by ${collaboration.postBy}` : ""}
           {collaboration.approvalRequired
@@ -76,8 +69,9 @@ export default async function BrandCollaborationPage({
         </p>
       </header>
 
-      <section className="mt-8">
-        <h2 className="text-sm font-medium">{headline(collaboration.state)}</h2>
+      <section className="mt-6">
+        {/* What this is waiting on, said before the controls that resolve it. */}
+        <h2 className="text-lg font-medium text-pretty">{headline(collaboration.state)}</h2>
 
         {collaboration.state === "in_review" && latest ? (
           <ReviewForm collaborationId={collaboration.id} />
@@ -96,22 +90,22 @@ export default async function BrandCollaborationPage({
       </section>
 
       {latest ? (
-        <div className="mt-8">
+        <div className="mt-6">
           <DraftPanel draft={latest} />
         </div>
       ) : (
-        <p className="mt-8 rounded-lg border border-dashed border-border p-5 text-sm text-pretty text-muted-foreground">
+        <Callout tone="empty" className="mt-6">
           Nothing has been submitted yet. The draft and its check results appear here
           the moment the creator submits — you see the same results they do.
-        </p>
+        </Callout>
       )}
 
       {previous.length > 0 ? (
-        <details className="mt-4">
-          <summary className="cursor-pointer text-sm text-muted-foreground">
+        <details className="mt-3">
+          <summary className="cursor-pointer rounded-md px-1 py-0.5 text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/25">
             {previous.length} earlier {previous.length === 1 ? "version" : "versions"}
           </summary>
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 space-y-3">
             {previous.map((draft) => (
               <DraftPanel key={draft.id} draft={draft} />
             ))}
@@ -119,7 +113,7 @@ export default async function BrandCollaborationPage({
         </details>
       ) : null}
 
-      <div className="mt-8">
+      <div className="mt-6">
         {collaboration.brief ? (
           <BriefPanel
             mode={collaboration.brief.mode}
@@ -130,10 +124,10 @@ export default async function BrandCollaborationPage({
       </div>
 
       <section className="mt-8">
-        <h2 className="text-sm font-medium">History</h2>
+        <SectionHeader title="History" meta={`${events.length} events`} />
         <History events={events} />
       </section>
-    </main>
+    </Page>
   );
 }
 
@@ -146,12 +140,18 @@ export default async function BrandCollaborationPage({
  */
 function History({ events }: { events: ReadonlyArray<CollaborationEvent> }) {
   return (
-    <ol className="mt-3 space-y-3 border-l border-border pl-4">
+    <ol className="space-y-2.5 border-l border-border pl-4">
       {events.map((event) => (
-        <li key={event.id}>
+        <li key={event.id} className="relative">
+          {/* The node on the rule. Without it the left border is decoration;
+              with it the list reads as a sequence of discrete events. */}
+          <span
+            aria-hidden
+            className="absolute top-1.5 -left-[1.3125rem] size-1.5 rounded-full bg-border ring-4 ring-background"
+          />
           <p className="text-sm">
             <span className="font-medium">{STATE_LABEL[event.toState]}</span>
-            <span className="text-muted-foreground">
+            <span className="num tabular-nums text-muted-foreground">
               {" · "}
               {event.actor}
               {" · "}

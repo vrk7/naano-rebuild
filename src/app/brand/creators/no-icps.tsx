@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/callout";
+import { Page, PageHeader } from "@/components/ui/page";
+
 /**
  * Nothing can be scored against nothing.
  *
@@ -10,19 +14,20 @@ import Link from "next/link";
  */
 export function NoIcps() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold tracking-tight">Creators</h1>
-      <p className="mt-4 text-sm text-pretty text-muted-foreground">
-        This workspace has no active ICPs, so there is nothing to score creators
-        against. Every number on this page would be meaningless, so there are no
-        numbers on this page.
-      </p>
-      <Link
-        href="/brand/icps"
-        className="mt-4 inline-block rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground"
+    <Page>
+      <PageHeader title="Creators" />
+      <EmptyState
+        title="No active ICPs in this workspace"
+        className="mt-6"
+        action={
+          <Button asChild size="lg">
+            <Link href="/brand/icps">Set up your ICPs</Link>
+          </Button>
+        }
       >
-        Set up your ICPs →
-      </Link>
-    </main>
+        There is nothing to score creators against. Every number on this page would
+        be meaningless, so there are no numbers on this page.
+      </EmptyState>
+    </Page>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 
-import { Field, FormMessage, SubmitButton } from "@/components/auth/field";
+import { Field, FormMessage, Label, SubmitButton, Textarea } from "@/components/ui/field";
 import { BRIEF_MODES, type BriefMode } from "@/lib/campaign/parse";
 import { LINKEDIN_POST_MAX_CHARS } from "@/lib/campaign/requirements";
 import { cn } from "@/lib/utils";
@@ -44,9 +44,9 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
   }
 
   return (
-    <form action={formAction} className="mt-8 space-y-8">
+    <form action={formAction} className="mt-6 space-y-6">
       <section className="space-y-4">
-        <h2 className="text-sm font-medium">The campaign</h2>
+        <h2 className="eyebrow">The campaign</h2>
 
         <Field
           name="name"
@@ -57,16 +57,15 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
         />
 
         <div className="space-y-1.5">
-          <label htmlFor="objective" className="block text-sm font-medium">
+          <Label htmlFor="objective">
             Objective <span className="font-normal text-muted-foreground">— optional</span>
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="objective"
             name="objective"
             rows={2}
             maxLength={500}
             placeholder="Reach sales engineering leaders at industrial manufacturers."
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <p className="text-xs text-muted-foreground">
             For your own team. It is not shown to creators and nothing scores against it.
@@ -85,10 +84,10 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
                 <label
                   key={region.code}
                   className={cn(
-                    "cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors",
+                    "cursor-pointer rounded-md border px-2.5 py-1 text-sm transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/25",
                     isPicked
-                      ? "border-brand bg-brand-soft text-brand"
-                      : "border-border text-muted-foreground hover:bg-muted/50",
+                      ? "border-brand/40 bg-brand-soft text-brand"
+                      : "border-border text-muted-foreground hover:bg-muted",
                   )}
                 >
                   <input
@@ -112,8 +111,8 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
         </fieldset>
       </section>
 
-      <section className="space-y-4 border-t border-border pt-8">
-        <h2 className="text-sm font-medium">The brief</h2>
+      <section className="space-y-4 border-t border-border pt-6">
+        <h2 className="eyebrow">The brief</h2>
 
         <fieldset className="space-y-2">
           <legend className="sr-only">Brief mode</legend>
@@ -121,8 +120,10 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
             <label
               key={option}
               className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-sm transition-colors",
-                mode === option ? "border-brand bg-brand-soft" : "border-border hover:bg-muted/40",
+                "flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 text-sm transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/25",
+                mode === option
+                  ? "border-brand/40 bg-brand-soft"
+                  : "border-border hover:bg-muted/50",
               )}
             >
               <input
@@ -131,7 +132,7 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
                 value={option}
                 checked={mode === option}
                 onChange={() => setMode(option)}
-                className="mt-1"
+                className="mt-0.5 accent-[var(--brand)]"
               />
               <span>
                 <span className="block font-medium">{MODE_COPY[option].label}</span>
@@ -144,10 +145,10 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
         </fieldset>
 
         <div className="space-y-1.5">
-          <label htmlFor="body" className="block text-sm font-medium">
+          <Label htmlFor="body">
             {mode === "creative_freedom" ? "Your one line" : "What the post should do"}
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="body"
             name="body"
             rows={mode === "creative_freedom" ? 2 : 5}
@@ -158,7 +159,6 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
                 ? "Your take on where quoting breaks down in industrial supply chains."
                 : "Talk about what a slow quote actually costs an industrial manufacturer — the deal that goes quiet, not the admin hours."
             }
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <p className="text-xs text-muted-foreground">
             The creator reads this. One line is a valid brief.
@@ -171,7 +171,7 @@ export function CampaignForm({ regions }: { regions: ReadonlyArray<Region> }) {
         {mode === "specific" ? <RequirementsFields /> : null}
       </section>
 
-      <div className="space-y-3 border-t border-border pt-6">
+      <div className="space-y-3 border-t border-border pt-5">
         <FormMessage error={state.error} />
         <SubmitButton pending={pending} pendingLabel="Creating…">
           Create campaign
@@ -261,12 +261,11 @@ function PhraseField({
       <label htmlFor={name} className="block text-sm font-medium">
         {label}
       </label>
-      <textarea
+      <Textarea
         id={name}
         name={name}
         rows={2}
         placeholder={placeholder}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
       <p className="text-xs text-muted-foreground">{hint}</p>
     </div>

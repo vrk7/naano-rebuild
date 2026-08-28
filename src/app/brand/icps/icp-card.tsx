@@ -3,15 +3,13 @@
 import { useActionState } from "react";
 
 import { ChipGroup, type ChipOption } from "@/components/brand/chip-group";
-import { FormMessage } from "@/components/auth/field";
+import { Badge } from "@/components/ui/badge";
+import { FormMessage, Input, SubmitButton, Textarea } from "@/components/ui/field";
 import type { IcpTargets } from "@/lib/brand/intelligence";
 
 import { submitIcp, type IcpFormState } from "./actions";
 
 const INITIAL: IcpFormState = { error: null, savedAt: null };
-
-const INPUT_CLASS =
-  "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export type DimensionOptions = Readonly<Record<keyof IcpTargets, ReadonlyArray<ChipOption>>>;
 
@@ -50,47 +48,50 @@ export function IcpCard({
   const key = `${id ?? "new"}:${state.savedAt ?? "initial"}`;
 
   return (
-    <form action={formAction} className="rounded-xl border border-border p-5">
+    <form action={formAction} className="rounded-lg border border-border">
       <input type="hidden" name="id" value={id ?? ""} />
       <input type="hidden" name="rank" value={rank} />
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          ICP {rank}
-          {id === null ? " · not created yet" : generated ? " · as generated" : ""}
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-t-lg border-b border-border bg-subtle px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className="eyebrow">ICP {rank}</span>
+          {id === null ? (
+            <Badge variant="outline">not created yet</Badge>
+          ) : generated ? (
+            <Badge variant="outline">as generated</Badge>
+          ) : null}
+        </div>
         <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
           <input
             type="checkbox"
             name="is_active"
             defaultChecked={isActive}
             key={`${key}:active`}
-            className="size-3.5"
+            className="size-3.5 accent-[var(--brand)]"
           />
           Score creators against this one
         </label>
       </div>
 
-      <div className="mt-3 space-y-3" key={key}>
-        <input
+      <div className="space-y-3 px-4 py-3.5" key={key}>
+        <Input
           name="label"
           defaultValue={label}
           placeholder="Sales engineering leaders, EU manufacturing"
           maxLength={120}
           required
           aria-label={`Name for ICP ${rank}`}
-          className={`${INPUT_CLASS} font-medium`}
+          className="text-md font-medium"
         />
 
         <div className="space-y-1.5">
-          <textarea
+          <Textarea
             name="description"
             defaultValue={description}
             rows={3}
             maxLength={1000}
             placeholder="Who they are and why they buy."
             aria-label={`Description for ICP ${rank}`}
-            className={INPUT_CLASS}
           />
           <p className="text-xs text-pretty text-muted-foreground">
             Read by you, and used to write briefs. Nothing is scored against it — the
@@ -98,7 +99,7 @@ export function IcpCard({
           </p>
         </div>
 
-        <div className="grid gap-5 border-t border-border pt-4 sm:grid-cols-2">
+        <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
           <ChipGroup
             dimension="job_function"
             legend="Job function"
@@ -130,14 +131,10 @@ export function IcpCard({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground disabled:opacity-60"
-        >
-          {pending ? "Saving…" : id === null ? `Create ICP ${rank}` : "Save"}
-        </button>
+      <div className="flex flex-wrap items-center gap-3 border-t border-border px-4 py-3">
+        <SubmitButton pending={pending} pendingLabel="Saving…">
+          {id === null ? `Create ICP ${rank}` : "Save"}
+        </SubmitButton>
         {state.savedAt !== null ? (
           <span role="status" className="text-sm text-muted-foreground">
             Saved.

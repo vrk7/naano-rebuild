@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 
-import { FormMessage } from "@/components/auth/field";
+import { Button } from "@/components/ui/button";
+import { FormMessage, Textarea } from "@/components/ui/field";
 import { LINKEDIN_POST_MAX_CHARS } from "@/lib/campaign/requirements";
 
 import { submitDraftVersion, type DraftState } from "./actions";
@@ -39,7 +40,7 @@ export function DraftForm({
 
   return (
     <form action={formAction} className="mt-4 space-y-3">
-      <textarea
+      <Textarea
         name="body"
         value={body}
         onChange={(event) => setBody(event.target.value)}
@@ -47,20 +48,19 @@ export function DraftForm({
         required
         aria-label="Your draft"
         placeholder="Write the post."
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending || over}
-          className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-foreground disabled:opacity-60"
-        >
+        <Button type="submit" size="lg" disabled={pending || over}>
           {pending ? "Submitting…" : isRevision ? "Submit a new version" : "Submit the draft"}
-        </button>
+        </Button>
+        {/* The counter is tabular so it does not jitter sideways as the digits
+            change under the cursor — it updates on every keystroke. */}
         <span
           className={
-            over ? "text-sm font-medium text-destructive" : "text-sm text-muted-foreground"
+            over
+              ? "num text-sm font-medium tabular-nums text-destructive"
+              : "num text-sm tabular-nums text-muted-foreground"
           }
         >
           {body.length.toLocaleString()} / {LINKEDIN_POST_MAX_CHARS.toLocaleString()}

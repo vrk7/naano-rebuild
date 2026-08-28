@@ -51,18 +51,18 @@ export default async function RegisterPage({ searchParams }: PageProps<"/registe
 
   return (
     <div>
-      <h1 className="text-3xl font-semibold tracking-tight">Create your account</h1>
-      <p className="mt-2 text-muted-foreground">First, who are you here as?</p>
+      <h1 className="text-2xl font-semibold tracking-[-0.014em]">Create your account</h1>
+      <p className="text-md mt-1.5 text-muted-foreground">First, who are you here as?</p>
 
-      <div className="mt-8 space-y-3">
+      <div className="mt-6 space-y-2">
         {PICKER_ORDER.map((role) => (
           <Link
             key={role}
             href={`/register/${role}${suffix}`}
-            className="block rounded-xl border border-border p-5 transition-colors hover:border-brand hover:bg-brand-soft"
+            className="block rounded-lg border border-border p-4 transition-colors outline-none hover:border-brand/40 hover:bg-brand-soft focus-visible:ring-[3px] focus-visible:ring-ring/25"
           >
-            <span className="block font-medium">{ROLE_COPY[role].label}</span>
-            <span className="mt-1 block text-sm text-pretty text-muted-foreground">
+            <span className="text-md block font-medium">{ROLE_COPY[role].label}</span>
+            <span className="mt-0.5 block text-sm text-pretty text-muted-foreground">
               {ROLE_COPY[role].hint}
             </span>
           </Link>

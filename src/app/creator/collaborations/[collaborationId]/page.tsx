@@ -1,8 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BriefPanel } from "@/components/campaign/brief-panel";
 import { DraftPanel } from "@/components/draft/draft-panel";
+import { Badge } from "@/components/ui/badge";
+import { Callout } from "@/components/ui/callout";
+import { BackLink, Page } from "@/components/ui/page";
 import { STATE_LABEL, type CollaborationState } from "@/lib/collaboration/machine";
 import { loadCreatorCollaboration } from "@/lib/collaboration/creator-inbox";
 import { latestChangeNote, loadEvents } from "@/lib/collaboration/queries";
@@ -45,33 +47,26 @@ export default async function CreatorCollaborationPage({
   const [latest] = drafts;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link
-        href="/creator"
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← Collaborations
-      </Link>
+    <Page width="narrow">
+      <BackLink href="/creator">Collaborations</BackLink>
 
-      <header className="mt-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
+      <header className="mt-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="num text-2xl font-semibold tracking-[-0.014em] tabular-nums">
             {formatCents(collaboration.priceCents)} for one post
           </h1>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            {STATE_LABEL[collaboration.state]}
-          </span>
+          <Badge variant="neutral">{STATE_LABEL[collaboration.state]}</Badge>
         </div>
         {/* An absence a creator will look for, so it is stated rather than left
             blank: the campaign belongs to the brand's workspace and only the
             brief crosses to the creator. */}
-        <p className="mt-2 text-sm text-pretty text-muted-foreground">
+        <p className="mt-1.5 max-w-prose text-sm text-pretty text-muted-foreground">
           Nothing here names the brand. The campaign stays in their workspace; the
           brief is the part that crosses to you.
         </p>
       </header>
 
-      <dl className="mt-6 grid gap-x-6 gap-y-3 rounded-xl border border-border p-5 sm:grid-cols-2">
+      <dl className="mt-5 grid gap-x-6 gap-y-3 rounded-lg border border-border px-4 py-3.5 sm:grid-cols-2">
         <Term label="Price">{formatCents(collaboration.priceCents)}</Term>
         <Term label="Post by">{collaboration.postBy ?? "No date set"}</Term>
         <Term label="Answer by">
@@ -92,14 +87,14 @@ export default async function CreatorCollaborationPage({
             requirements={collaboration.brief.requirements}
           />
         ) : (
-          <p className="rounded-lg border border-dashed border-border p-5 text-sm text-pretty text-muted-foreground">
+          <Callout tone="warning">
             This campaign has no readable brief, so there is nothing here to write
             against. Do not accept it until the brand fixes that.
-          </p>
+          </Callout>
         )}
       </div>
 
-      <section className="mt-8 border-t border-border pt-6">
+      <section className="mt-6 border-t border-border pt-5">
         {collaboration.state === "invited" ? (
           <>
             {lapsed ? (
@@ -130,11 +125,11 @@ export default async function CreatorCollaborationPage({
       {latest &&
       collaboration.state !== "drafting" &&
       collaboration.state !== "changes_requested" ? (
-        <div className="mt-6">
+        <div className="mt-5">
           <DraftPanel draft={latest} />
         </div>
       ) : null}
-    </main>
+    </Page>
   );
 }
 
@@ -163,12 +158,14 @@ function Work({
   if (state === "drafting" || state === "changes_requested") {
     return (
       <div>
-        <h2 className="text-sm font-medium">
+        <h2 className="text-lg font-medium">
           {state === "changes_requested" ? "The brand sent it back" : "Write the post"}
         </h2>
 
+        {/* The brand's note is the only thing the creator gets, so it is set
+            apart from the page rather than run in as another paragraph. */}
         {state === "changes_requested" && changeNote ? (
-          <blockquote className="mt-3 border-l-2 border-border pl-4 text-sm text-pretty">
+          <blockquote className="text-md mt-3 border-l-2 border-brand/40 bg-brand-soft/50 py-2 pl-4 text-pretty">
             {changeNote}
           </blockquote>
         ) : null}
@@ -191,7 +188,7 @@ function Work({
   if (state === "approved") {
     return (
       <div>
-        <h2 className="text-sm font-medium">Publish it</h2>
+        <h2 className="text-lg font-medium">Publish it</h2>
         <p className="mt-2 text-sm text-pretty text-muted-foreground">
           Approved. Post it on LinkedIn and paste the link back — everything the brand
           sees afterwards hangs off that link.
@@ -204,7 +201,7 @@ function Work({
   if (state === "published" || state === "completed") {
     return (
       <div>
-        <h2 className="text-sm font-medium">
+        <h2 className="text-lg font-medium">
           {state === "published" ? "Published" : "Closed"}
         </h2>
         <p className="mt-2 text-sm text-pretty text-muted-foreground">
@@ -252,9 +249,7 @@ const AFTER_ANSWERING: Readonly<Record<CollaborationState, string>> = {
 function Term({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="eyebrow">{label}</dt>
       <dd className="mt-0.5 text-sm text-pretty">{children}</dd>
     </div>
   );

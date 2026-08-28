@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { Callout } from "@/components/ui/callout";
+import { BackLink, Page, PageHeader } from "@/components/ui/page";
 import { defaultPostBy, earliestPostBy } from "@/lib/collaboration/booking";
 import { STATE_LABEL } from "@/lib/collaboration/machine";
 import { loadBookingTarget } from "@/lib/collaboration/queries";
@@ -40,52 +43,44 @@ export default async function BookCreatorPage({
   const now = new Date();
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-12">
-      <Link
-        href={`/brand/creators/${creatorId}?campaign=${campaignId}`}
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← {target.creator.displayName}
-      </Link>
+    <Page width="narrow">
+      <BackLink href={`/brand/creators/${creatorId}?campaign=${campaignId}`}>
+        {target.creator.displayName}
+      </BackLink>
 
-      <header className="mt-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Book {target.creator.displayName}
-        </h1>
-        <p className="mt-1 text-sm text-pretty text-muted-foreground">
-          On {campaign.name}
-          {target.creator.headline ? ` · ${target.creator.headline}` : ""}
-        </p>
-      </header>
+      <PageHeader
+        className="mt-3"
+        title={`Book ${target.creator.displayName}`}
+        description={`On ${campaign.name}${target.creator.headline ? ` · ${target.creator.headline}` : ""}`}
+      />
 
       {target.existing ? (
         /* The database refuses a second live collaboration between one campaign
            and one creator, and so does this page — a brand should not reach a
            form whose submit is already decided. */
-        <div className="mt-8 rounded-lg border border-border p-5">
-          <p className="text-sm text-pretty">
+        <Callout tone="note" className="mt-6">
+          <p className="text-foreground">
             {target.creator.displayName} is already booked on this campaign, and that
             collaboration is {STATE_LABEL[target.existing.state].toLowerCase()}. One
             live booking per creator per campaign.
           </p>
           <Link
             href={`/brand/campaigns/${campaignId}`}
-            className="mt-3 inline-block text-sm font-medium underline underline-offset-4"
+            className="mt-2 inline-flex items-center gap-1 font-medium"
           >
-            Back to {campaign.name} →
+            Back to {campaign.name}
+            <ArrowRight aria-hidden className="size-3.5" />
           </Link>
-        </div>
+        </Callout>
       ) : target.walletBalanceCents === null ? (
         /* Not the same as a zero balance, and it must not read like one: a
            workspace with no wallet has nothing to commit against and topping up
            is not built. Saying "$0" would suggest a button that does not exist. */
-        <div className="mt-8 rounded-lg border border-dashed border-border p-5">
-          <p className="text-sm text-pretty text-muted-foreground">
-            This workspace has no wallet, so there is nothing to commit a booking
-            against. Wallets are created with the seeded demo workspace; nothing in
-            the product makes one yet.
-          </p>
-        </div>
+        <Callout tone="empty" className="mt-6">
+          This workspace has no wallet, so there is nothing to commit a booking
+          against. Wallets are created with the seeded demo workspace; nothing in
+          the product makes one yet.
+        </Callout>
       ) : (
         <BookingForm
           campaignId={campaignId}
@@ -97,6 +92,6 @@ export default async function BookCreatorPage({
           walletBalanceCents={target.walletBalanceCents}
         />
       )}
-    </main>
+    </Page>
   );
 }

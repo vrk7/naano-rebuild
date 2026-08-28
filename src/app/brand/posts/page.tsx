@@ -1,5 +1,17 @@
 import Link from "next/link";
 
+import { EmptyState } from "@/components/ui/callout";
+import { Page, PageHeader } from "@/components/ui/page";
+import {
+  TableFrame,
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+  CellNote,
+} from "@/components/ui/table";
 import { formatCents, formatPercent } from "@/lib/posts/metrics";
 import { loadPostSummaries } from "@/lib/posts/queries";
 
@@ -9,71 +21,59 @@ export default async function PostsIndex() {
   const posts = await loadPostSummaries();
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Published posts</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          What each post cost, and what it actually brought in.
-        </p>
-      </header>
+    <Page width="wide">
+      <PageHeader
+        title="Published posts"
+        description="What each post cost, and what it actually brought in."
+      />
 
       {posts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No published posts yet.
-        </p>
+        <EmptyState title="No published posts yet" className="mt-6">
+          A post appears here once a booked creator publishes their approved draft.
+        </EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">Creator</th>
-                <th className="px-4 py-3 text-right font-medium">Engaged</th>
-                <th className="px-4 py-3 text-right font-medium">In ICP</th>
-                <th className="px-4 py-3 text-right font-medium">Cost</th>
-                <th className="px-4 py-3 text-right font-medium">Per engaged</th>
-                <th className="px-4 py-3 text-right font-medium">Per ICP match</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
+        <TableFrame className="mt-6">
+          <Table>
+            <THead>
+              <TR>
+                <TH>Creator</TH>
+                <TH numeric>Engaged</TH>
+                <TH numeric>In ICP</TH>
+                <TH numeric>Cost</TH>
+                <TH numeric>Per engaged</TH>
+                <TH numeric>Per ICP match</TH>
+              </TR>
+            </THead>
+            <TBody>
               {posts.map((post) => (
-                <tr key={post.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3">
+                <TR key={post.id} interactive>
+                  <TD>
                     <Link
                       href={`/brand/posts/${post.id}`}
-                      className="font-medium underline-offset-4 hover:underline"
+                      className="font-medium underline-offset-4 outline-none hover:underline focus-visible:underline"
                     >
                       {post.creatorName}
                     </Link>
-                    <span className="block text-xs text-muted-foreground">
-                      {post.campaignName}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {post.economics.engagedPeople}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                    <CellNote>{post.campaignName}</CellNote>
+                  </TD>
+                  <TD numeric>{post.economics.engagedPeople}</TD>
+                  <TD numeric>
                     {post.economics.matchedPeople}
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      {formatPercent(post.economics.matchRate)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {formatCents(post.economics.costCents)}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {formatCents(post.economics.costPerEngagedCents)}
-                  </td>
+                    <CellNote>{formatPercent(post.economics.matchRate)}</CellNote>
+                  </TD>
+                  <TD numeric>{formatCents(post.economics.costCents)}</TD>
+                  <TD numeric>{formatCents(post.economics.costPerEngagedCents)}</TD>
                   {/* The column the product exists for. An em dash here means the
                       post reached people and none of them were the ones asked for. */}
-                  <td className="px-4 py-3 text-right font-medium tabular-nums">
+                  <TD numeric className="font-medium">
                     {formatCents(post.economics.costPerMatchedCents)}
-                  </td>
-                </tr>
+                  </TD>
+                </TR>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </TableFrame>
       )}
-    </main>
+    </Page>
   );
 }

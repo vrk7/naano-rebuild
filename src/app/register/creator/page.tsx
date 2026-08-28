@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BackLink } from "@/components/ui/page";
 import { REGISTER_PATH, RETURN_TO_PARAM, safeReturnTo } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -43,17 +44,12 @@ export default async function RegisterCreatorPage({
 
   return (
     <div>
-      <Link
-        href={REGISTER_PATH}
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
-        ← Not a creator?
-      </Link>
+      <BackLink href={REGISTER_PATH}>Not a creator?</BackLink>
 
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight">
+      <h1 className="mt-3 text-2xl font-semibold tracking-[-0.014em]">
         Create a creator account
       </h1>
-      <p className="mt-2 text-pretty text-muted-foreground">
+      <p className="text-md mt-1.5 max-w-prose text-pretty text-muted-foreground">
         One screen. Your profile URL, what you post about, and what you charge.
       </p>
 
