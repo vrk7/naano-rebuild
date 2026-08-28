@@ -13,6 +13,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { formatCents } from "@/lib/posts/metrics";
+import { isBriefMode, type BriefMode } from "@/lib/campaign/parse";
+import { parseStoredRequirements, type BriefRequirements } from "@/lib/campaign/requirements";
 import { RESPOND_WINDOW_HOURS, isOpen, type CollaborationState } from "./machine";
 import type { BookingInput } from "./booking";
 
@@ -207,4 +209,121 @@ export async function loadCampaignCollaborations(
       creator: { id: creator.id, displayName: creator.display_name },
     };
   });
+}
+
+export type CollaborationDetail = CampaignCollaboration & {
+  readonly campaign: { readonly id: string; readonly name: string };
+  readonly brief: {
+    readonly mode: BriefMode;
+    readonly body: string | null;
+    readonly requirements: BriefRequirements;
+  } | null;
+};
+
+/**
+ * One collaboration, as the brand sees it.
+ *
+ * The campaign and its brief come along because the review screen judges a
+ * draft against them — a brand approving a post without the rules it was
+ * written to is guessing.
+ */
+export async function loadCollaboration(
+  collaborationId: string,
+): Promise<CollaborationDetail | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("collaboration")
+    .select(
+      "id, state, price_cents, post_by, respond_by, approval_required, created_at, campaign_id, creator ( id, display_name ), campaign ( id, name, brief ( mode, body, requirements ) )",
+    )
+    .eq("id", collaborationId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Could not load that collaboration: ${error.message}`);
+  // Absent means no such row, or one this session may not see. Both end here.
+  if (!data) return null;
+
+  const one = <T,>(value: unknown): T | null =>
+    (Array.isArray(value) ? (value[0] as T) : (value as T)) ?? null;
+
+  const creator = one<{ id: string; display_name: string }>(data.creator);
+  const campaign = one<{ id: string; name: string; brief: unknown }>(data.campaign);
+
+  if (!creator || !campaign) {
+    // Both are non-null foreign keys. An absent join means the shape changed,
+    // or — for the campaign — that a creator reached a brand-side loader, which
+    // has no policy to read it.
+    throw new Error(`Collaboration ${collaborationId} came back without its creator or campaign.`);
+  }
+
+  const brief = one<{ mode: string; body: string | null; requirements: unknown }>(campaign.brief);
+
+  return {
+    id: data.id as string,
+    state: data.state as CollaborationState,
+    priceCents: data.price_cents as number,
+    postBy: (data.post_by ?? null) as string | null,
+    respondBy: (data.respond_by ?? null) as string | null,
+    approvalRequired: data.approval_required as boolean,
+    createdAt: data.created_at as string,
+    creator: { id: creator.id, displayName: creator.display_name },
+    campaign: { id: campaign.id, name: campaign.name },
+    brief:
+      brief && isBriefMode(brief.mode)
+        ? {
+            mode: brief.mode,
+            body: brief.body,
+            requirements: parseStoredRequirements(brief.requirements),
+          }
+        : null,
+  };
+}
+
+export type CollaborationEvent = {
+  readonly id: string;
+  readonly fromState: CollaborationState | null;
+  readonly toState: CollaborationState;
+  readonly actor: string;
+  readonly note: string | null;
+  readonly at: string;
+};
+
+/**
+ * The append-only log, oldest first.
+ *
+ * PRODUCT.md keeps `collaboration_event` as the history, and the
+ * request-changes note lives nowhere else — SCOPE.md cuts messaging, so this is
+ * the only channel a brand has for saying what is wrong.
+ */
+export async function loadEvents(collaborationId: string): Promise<CollaborationEvent[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("collaboration_event")
+    .select("id, from_state, to_state, actor, note, at")
+    .eq("collaboration_id", collaborationId)
+    .order("at", { ascending: true });
+
+  if (error) throw new Error(`Could not load the history: ${error.message}`);
+  if (!data) throw new Error("Event query returned no data");
+
+  return data.map((row) => ({
+    id: row.id as string,
+    fromState: (row.from_state ?? null) as CollaborationState | null,
+    toState: row.to_state as CollaborationState,
+    actor: row.actor as string,
+    note: (row.note ?? null) as string | null,
+    at: row.at as string,
+  }));
+}
+
+/** The note the brand sent back with, if the last thing that happened was that. */
+export function latestChangeNote(
+  events: ReadonlyArray<CollaborationEvent>,
+): CollaborationEvent | null {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    if (events[index].toState === "changes_requested") return events[index];
+  }
+  return null;
 }

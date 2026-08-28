@@ -170,8 +170,15 @@ draft_check        → draft
                    evidence (text span from the draft), explanation
 ```
 
-`draft_check.evidence` is required for any `fail`. A check that cannot point at
-the span it is judging does not get to fail the draft.
+`draft_check.evidence` is required for any `fail` a **model** produces: a model
+check that cannot point at the span it is judging does not get to fail the
+draft, which is the whole reason the model half is cut from v1.
+
+A deterministic check may fail without one, and three of them have to. A
+required mention, a link and a disclosure that are *absent* have no span to
+quote — the alternative is citing something the check is not judging — and
+their finding is reproducible by anyone holding the draft, which is the
+property the rule is actually protecting.
 
 ```
 post               → collaboration (1:1)

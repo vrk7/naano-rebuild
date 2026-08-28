@@ -19,25 +19,29 @@ import {
   type Actor,
   type CollaborationSnapshot,
   type CollaborationState,
+  type TransitionStep,
 } from "./machine";
 
 export type TransitionResult =
   | { readonly kind: "ok"; readonly state: CollaborationState }
   | { readonly kind: "refused"; readonly reason: string };
 
-type Row = {
+export type CollaborationRow = {
   readonly id: string;
+  readonly campaignId: string;
   readonly workspaceId: string;
   readonly creatorId: string;
   readonly snapshot: CollaborationSnapshot;
 };
 
-async function loadRow(collaborationId: string): Promise<Row | null> {
+async function loadRow(collaborationId: string): Promise<CollaborationRow | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("collaboration")
-    .select("id, workspace_id, creator_id, state, respond_by, approval_required, post ( published_at )")
+    .select(
+      "id, campaign_id, workspace_id, creator_id, state, respond_by, approval_required, post ( published_at )",
+    )
     .eq("id", collaborationId)
     .maybeSingle();
 
@@ -51,6 +55,7 @@ async function loadRow(collaborationId: string): Promise<Row | null> {
 
   return {
     id: data.id as string,
+    campaignId: data.campaign_id as string,
     workspaceId: data.workspace_id as string,
     creatorId: data.creator_id as string,
     snapshot: {
@@ -70,7 +75,7 @@ async function loadRow(collaborationId: string): Promise<Row | null> {
  * booking workspace and the check is a single indexed lookup. `system` is not
  * derivable from a session and is never returned here.
  */
-async function actorFor(row: Row): Promise<Actor | null> {
+async function actorFor(row: CollaborationRow): Promise<Actor | null> {
   const supabase = await createClient();
 
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
@@ -101,11 +106,38 @@ async function actorFor(row: Row): Promise<Actor | null> {
   return null;
 }
 
-export async function applyTransition(
+export type TransitionPlan =
+  | {
+      readonly kind: "ok";
+      readonly steps: ReadonlyArray<TransitionStep>;
+      readonly state: CollaborationState;
+      readonly row: CollaborationRow;
+    }
+  | { readonly kind: "refused"; readonly reason: string };
+
+/**
+ * What the machine says, without writing it.
+ *
+ * Split out because two of the transitions are not the only thing their request
+ * writes: submitting a draft writes the draft and its checks first, and
+ * publishing writes the post. Those go through their own function so everything
+ * lands in one transaction, and this is how they get the steps to hand it.
+ *
+ * Takes a list of actions because a creator resubmitting after changes does two
+ * things at once — reopens the draft, then submits it — and PRODUCT.md gives
+ * those two separate rows in the log. Each action is decided against the state
+ * the one before it left behind.
+ */
+export async function planTransition(
   collaborationId: string,
-  action: Action,
+  /**
+   * A list, or a function of the state the row is actually in. The second form
+   * exists for one case: a creator resubmitting after changes reopens the draft
+   * first, and only the loaded row knows whether that step is needed.
+   */
+  actions: ReadonlyArray<Action> | ((state: CollaborationState) => ReadonlyArray<Action>),
   now: Date = new Date(),
-): Promise<TransitionResult> {
+): Promise<TransitionPlan> {
   const row = await loadRow(collaborationId);
   if (!row) return { kind: "refused", reason: "That collaboration is not one you can see." };
 
@@ -114,18 +146,44 @@ export async function applyTransition(
     return { kind: "refused", reason: "This account is neither side of that collaboration." };
   }
 
-  const decided = transition(row.snapshot, action, { now, by });
+  const steps: TransitionStep[] = [];
+  let snapshot = row.snapshot;
+  const wanted = typeof actions === "function" ? actions(row.snapshot.state) : actions;
+
+  for (const action of wanted) {
+    const decided = transition(snapshot, action, { now, by });
+    if (decided.kind === "refused") return decided;
+    steps.push(...decided.steps);
+    snapshot = { ...snapshot, state: decided.state };
+  }
+
+  return { kind: "ok", steps, state: snapshot.state, row };
+}
+
+/** The steps as `apply_collaboration_transition` and its callers want them. */
+export function stepsForRpc(
+  steps: ReadonlyArray<TransitionStep>,
+): Array<{ from: string; to: string; actor: string; note: string | null }> {
+  return steps.map((step) => ({
+    from: step.from,
+    to: step.to,
+    actor: step.actor,
+    note: step.note,
+  }));
+}
+
+export async function applyTransition(
+  collaborationId: string,
+  action: Action,
+  now: Date = new Date(),
+): Promise<TransitionResult> {
+  const decided = await planTransition(collaborationId, [action], now);
   if (decided.kind === "refused") return decided;
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("apply_collaboration_transition", {
     p_collaboration_id: collaborationId,
-    p_steps: decided.steps.map((step) => ({
-      from: step.from,
-      to: step.to,
-      actor: step.actor,
-      note: step.note,
-    })),
+    p_steps: stepsForRpc(decided.steps),
   });
 
   if (error) {
