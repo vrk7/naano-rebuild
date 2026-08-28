@@ -33,6 +33,16 @@ loud on the screen itself, not just in this file — the seeded data carries a
 
 Real code, real tests, no shortcuts.
 
+- **The role picker.** One screen — brand or creator — and then a branch. It is
+  the clearest screen naano has (`brand/01`) and the front door of a two-sided
+  product; cutting it, as an earlier version of this file did, made the second
+  side of the product look like a setting on a signup form.
+- **Creator signup, in one screen.** Profile URL, up to three industries, price.
+  naano spends five screens here (`creator/01`–`creator/06`) and four of them
+  collect things nothing reads: a country prefilled from a scrape, a bundle, and
+  an optional professional-information step about registered activity and
+  invoicing for payouts that are cut below. What is left is what a marketplace
+  listing is made of.
 - **Auth, workspace, membership, RLS.** Two roles, owner and admin. Access
   control is one of the four things `CLAUDE.md` requires tests for.
 - **ICP editor.** Structured targets — roles, seniorities, industries, geos —
@@ -138,8 +148,6 @@ Not "later" — not built. Each with the reason.
   animation, the preview, the share sheet (`creator/07`–`creator/09`). Nice,
   and irrelevant.
 - **i18n.** naano ships EN/FR. English only.
-- **Two-sided signup.** No role picker. Creators arrive by invitation to a
-  collaboration and land in a thin workspace.
 - **Model-judged draft checks in v1.** An LLM scoring "brief adherence"
   produces a number nobody can dispute or act on, and it is the least
   differentiated thing we could build. The deterministic checks — required
@@ -155,7 +163,9 @@ Each step ends somewhere demonstrable.
    seed is the fixture everything else is tested against, so it comes first.
 2. **Scoring engine.** Pure, tested, no UI. Includes the low-score and
    low-confidence cases.
-3. **Onboarding → ICP editor.** Faked generation, real editing.
+3. **Role picker → the two signup branches → ICP editor.** The picker and the
+   creator's one screen are small; the brand branch's faked generation and real
+   ICP editing are the work.
 4. **Marketplace + creator profile.** First point the thesis is visible: a
    ranked list where the ranking is legible and some entries score badly.
 5. **Campaign + brief, both modes.**

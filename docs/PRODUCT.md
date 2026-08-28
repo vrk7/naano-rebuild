@@ -354,8 +354,20 @@ Both sides' tab counts come from this one function.
 
 The path the product has to make walkable. Numbers are screens.
 
-1. **Sign up.** Email, password, workspace name. No role picker — this build is
-   brand-side; creators arrive by invitation to a collaboration.
+1. **Pick a side.** One screen: brand or creator, then a branch (`brand/01`).
+   Both sides of a two-sided product get a front door.
+
+   **Brand:** email and password, then everything below.
+
+   **Creator:** one screen — public LinkedIn profile URL, up to three
+   industries, price per post — and they are listed. That is the whole creator
+   onboarding. naano uses five screens (`creator/01`–`creator/06`); the country
+   is prefilled from a scrape we do not perform, bundles and payouts are cut in
+   `SCOPE.md`, and nothing reads the rest.
+
+   We do not scrape, so a self-registered creator has no `audience_snapshot`
+   and therefore no score. The marketplace leaves them out rather than showing a
+   zero, and the signup screen says so before they fill anything in.
 
 2. **Website.** One field. We generate `brand_profile` and three `icp` rows with
    their `icp_target` sets. Generation is faked — see `SCOPE.md`.
