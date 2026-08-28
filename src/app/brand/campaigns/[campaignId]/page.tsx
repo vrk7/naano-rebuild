@@ -81,16 +81,18 @@ export default async function CampaignPage({
       <section className="mt-8 rounded-lg border border-border p-5">
         <h2 className="text-sm font-medium">Next</h2>
         <p className="mt-2 text-sm text-pretty text-muted-foreground">
-          Find creators whose audience matches your ICPs, and book one against this
-          campaign.
+          Creators scored against your ICPs, each showing how much of their audience
+          is actually in{" "}
+          {campaign.geos.length === 0
+            ? "the regions you are running in — this campaign names none, so nothing is filtered by geography"
+            : campaign.geos.map((code) => taxonomy.labelFor("geo", code)).join(", ")}
+          .
         </p>
-        {/* The marketplace is not yet scoped to a campaign (PRODUCT.md step 5),
-            so this links to the whole list rather than pretending to filter it. */}
         <Link
-          href="/brand/creators"
+          href={`/brand/campaigns/${campaign.id}/creators`}
           className="mt-3 inline-block text-sm font-medium underline underline-offset-4"
         >
-          Browse creators →
+          Find creators for this campaign →
         </Link>
       </section>
     </main>

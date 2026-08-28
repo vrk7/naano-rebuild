@@ -5,9 +5,11 @@ import { AudiencePanel } from "@/components/creator/audience-panel";
 import { ScoreBreakdown } from "@/components/creator/score-breakdown";
 import { ConfidenceNote, ScoreBadge } from "@/components/marketplace/score-badge";
 import { formatCents } from "@/lib/posts/metrics";
+import { loadCampaign } from "@/lib/campaign/queries";
 import { loadCreatorProfile } from "@/lib/marketplace/queries";
 import { quotableValue } from "@/lib/score/creator";
 import type { IcpScore } from "@/lib/marketplace/ranking";
+import type { CreatorProfile } from "@/lib/marketplace/queries";
 
 export async function generateMetadata({ params }: PageProps<"/brand/creators/[creatorId]">) {
   const { creatorId } = await params;
@@ -21,7 +23,22 @@ export default async function CreatorProfilePage({
 }: PageProps<"/brand/creators/[creatorId]">) {
   const { creatorId } = await params;
   const query = await searchParams;
-  const profile = await loadCreatorProfile(creatorId);
+
+  /*
+   * The profile is not nested under a campaign, unlike the list.
+   *
+   * Its content genuinely does not depend on one: the breakdown, the audience
+   * and every score read the workspace's ICPs. The campaign is carried as
+   * context so the back link returns where you came from and the reach line can
+   * answer the campaign's own question — not because the page is scoped.
+   */
+  const campaignId = Array.isArray(query.campaign) ? query.campaign[0] : query.campaign;
+  const campaign = typeof campaignId === "string" ? await loadCampaign(campaignId) : null;
+
+  const profile = await loadCreatorProfile(
+    creatorId,
+    campaign ? { campaignGeos: campaign.geos } : undefined,
+  );
 
   if (!profile) notFound();
 
@@ -57,10 +74,10 @@ export default async function CreatorProfilePage({
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
       <Link
-        href="/brand/creators"
+        href={campaign ? `/brand/campaigns/${campaign.id}/creators` : "/brand/creators"}
         className="text-sm text-muted-foreground underline-offset-4 hover:underline"
       >
-        ← All creators
+        ← {campaign ? `Creators for ${campaign.name}` : "All creators"}
       </Link>
 
       <header className="mt-4 flex flex-wrap items-start gap-6">
@@ -105,6 +122,14 @@ export default async function CreatorProfilePage({
           "A brand should be able to read why a creator scored 31 without opening
           anything." */}
       <Verdict entry={selected} sampleSize={creator.sampleSize} postsAnalyzed={creator.postsAnalyzed} />
+
+      {campaign && profile.campaignReach ? (
+        <CampaignReachNote
+          reach={profile.campaignReach}
+          campaignName={campaign.name}
+          regions={campaign.geos.map((code) => taxonomy.labelFor("geo", code))}
+        />
+      ) : null}
 
       <section className="mt-10">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -234,6 +259,43 @@ function Verdict({
         {value === null ? "Why there is no score" : `Why this scores ${value}`}
       </p>
       <p className="mt-1.5 text-lg text-pretty">{headline}</p>
+    </div>
+  );
+}
+
+/**
+ * Campaign reach, kept separate from the score.
+ *
+ * The score answers "does this creator reach the people you sell to". This
+ * answers "does this creator reach where this campaign is running". They are
+ * different questions with different answers, and a brand that sees a strong
+ * score next to near-zero reach has learned something a single number would
+ * have hidden.
+ */
+function CampaignReachNote({
+  reach,
+  campaignName,
+  regions,
+}: {
+  reach: NonNullable<CreatorProfile["campaignReach"]>;
+  campaignName: string;
+  regions: ReadonlyArray<string>;
+}) {
+  if (reach.kind === "untargeted") return null;
+
+  const detail =
+    reach.kind === "unobserved"
+      ? "This snapshot carries no region data, so we cannot say."
+      : reach.share === 0
+        ? `None of this audience is in ${regions.join(", ")}.`
+        : `${Math.round(reach.share * 100)}% of this audience is in ${regions.join(", ")}.`;
+
+  return (
+    <div className="mt-3 rounded-xl border border-border p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        Where {campaignName} is running
+      </p>
+      <p className="mt-1 text-sm text-pretty">{detail}</p>
     </div>
   );
 }

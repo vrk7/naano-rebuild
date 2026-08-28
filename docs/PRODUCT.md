@@ -390,6 +390,21 @@ The path the product has to make walkable. Numbers are screens.
    confidence last. Low scores are shown and labelled, not hidden — a score
    that only ever appears when it is high is the constant we are replacing.
 
+   Scoping does not touch the score. The score reads `icp_target`, which says
+   who the brand sells to, and that does not change because a campaign is
+   running. What scoping adds is the second question — how much of this
+   creator's audience is inside `campaign.geos`, where the campaign is actually
+   running — shown on each card as its own sentence. The two disagree often
+   enough to be worth separating: a brand selling across the EU can run a
+   campaign in Germany alone, and a strong ICP match can reach almost nobody
+   there.
+
+   Creators reaching none of the campaign's regions can be filtered out. The
+   filter is off by default and the count it would remove is stated before it is
+   turned on, because a marketplace that quietly drops creators is the same
+   failure as one whose score is always high. The test is "none at all", which
+   is a fact rather than another invented threshold.
+
 6. **Creator profile.** The breakdown table. Audience facets per dimension with
    the target set marked. Recent posts. Rate.
 
