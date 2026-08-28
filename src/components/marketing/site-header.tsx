@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LOGIN_PATH } from "@/lib/auth/roles";
 import { Wordmark } from "./wordmark";
 
 const NAV_LINKS = [
@@ -37,7 +38,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           <Button asChild variant="ghost" size="lg" className="hidden sm:inline-flex">
-            <Link href="/sign-in">Sign in</Link>
+            <Link href={LOGIN_PATH}>Sign in</Link>
           </Button>
           <Button asChild size="lg" className="bg-brand text-brand-foreground hover:bg-brand/85">
             <Link href="/register">Launch a campaign</Link>
@@ -64,7 +65,7 @@ export function SiteHeader() {
                 </a>
               ))}
               <a
-                href="/sign-in"
+                href={LOGIN_PATH}
                 className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 Sign in

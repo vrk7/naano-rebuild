@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LOGIN_PATH } from "@/lib/auth/roles";
 import { Wordmark } from "./wordmark";
 
 const COLUMNS = [
@@ -15,8 +16,8 @@ const COLUMNS = [
     heading: "Company",
     links: [
       { label: "Customers", href: "#proof" },
-      { label: "Book a call", href: "/contact" },
-      { label: "Sign in", href: "/sign-in" },
+      { label: "How it works", href: "#how-it-works" },
+      { label: "Sign in", href: LOGIN_PATH },
     ],
   },
 ] as const;

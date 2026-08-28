@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Container, Section } from "./section";
 import { Reveal } from "./reveal";
 
-const CALL_COVERS = [
+const FIRST_RUN = [
   "Which creators your buyers already read",
   "The campaign format and brief mode that fits",
   "A budget recommendation with the maths shown",
@@ -46,14 +46,14 @@ export function FinalCta() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-11 px-5 text-base">
-                  <Link href="/contact">Book a 30-minute call</Link>
+                  <a href="#how-it-works">See the fifteen steps</a>
                 </Button>
               </div>
             </div>
 
             <ul className="flex flex-col gap-3 rounded-2xl border border-brand-muted bg-card p-6">
-              <li className="text-sm font-semibold">What the call covers</li>
-              {CALL_COVERS.map((item) => (
+              <li className="text-sm font-semibold">What the first run gives you</li>
+              {FIRST_RUN.map((item) => (
                 <li key={item} className="flex gap-2.5 text-sm text-muted-foreground">
                   <Check className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
                   {item}
