@@ -122,7 +122,13 @@ export default async function CreatorCollaborationPage({
         )}
       </section>
 
-      {latest && collaboration.state !== "in_review" && collaboration.state !== "drafting" &&
+      {/* Everywhere except the two states where `Work` already shows the draft
+          it is asking you to rewrite. In review especially: PRODUCT.md has the
+          creator see the failures before the brand does, and a screen that
+          hides them the moment it is the brand's turn would make that untrue
+          for the only period it matters. */}
+      {latest &&
+      collaboration.state !== "drafting" &&
       collaboration.state !== "changes_requested" ? (
         <div className="mt-6">
           <DraftPanel draft={latest} />
