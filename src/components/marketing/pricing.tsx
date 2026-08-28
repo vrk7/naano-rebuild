@@ -12,7 +12,8 @@ type Plan = {
   description: string;
   features: readonly string[];
   cta: string;
-  href: string;
+  /** Absent when the plan has nowhere real to send anyone — see Managed. */
+  href?: string;
   isFeatured?: boolean;
 };
 
@@ -59,8 +60,10 @@ const PLANS: readonly Plan[] = [
       "Campaign reporting against your ICPs",
       "A named strategist on the account",
     ],
-    cta: "Book a campaign call",
-    href: "/contact",
+    // No href: a managed service needs people, and this rebuild has none. The
+    // card still says what the tier would cover; the button says it is not
+    // here, which is the same thing SCOPE.md does in prose.
+    cta: "Not in this rebuild",
   },
 ];
 
@@ -116,7 +119,8 @@ export function Pricing() {
               </ul>
 
               <Button
-                asChild
+                asChild={plan.href !== undefined}
+                disabled={plan.href === undefined}
                 size="lg"
                 variant={plan.isFeatured ? "default" : "outline"}
                 className={cn(
@@ -124,7 +128,7 @@ export function Pricing() {
                   plan.isFeatured && "bg-brand text-brand-foreground hover:bg-brand/85",
                 )}
               >
-                <Link href={plan.href}>{plan.cta}</Link>
+                {plan.href ? <Link href={plan.href}>{plan.cta}</Link> : plan.cta}
               </Button>
             </Reveal>
           ))}
