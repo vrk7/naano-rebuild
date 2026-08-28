@@ -1,3 +1,5 @@
+import { Card, CardBody, CardHeader, CardMeta, CardTitle } from "@/components/ui/card";
+import { StatusDot } from "@/components/ui/status-dot";
 import type { DraftVersion, StoredCheck } from "@/lib/draft/queries";
 
 /**
@@ -19,10 +21,10 @@ export function DraftPanel({
   const failed = draft.checks.filter((check) => check.status === "fail");
 
   return (
-    <section className="rounded-xl border border-border p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-medium">{title ?? `Draft, version ${draft.version}`}</h2>
-        <span className="text-xs text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>{title ?? `Draft, version ${draft.version}`}</CardTitle>
+        <CardMeta className="num tabular-nums">
           Submitted{" "}
           {new Date(draft.submittedAt).toLocaleString("en-GB", {
             day: "numeric",
@@ -32,13 +34,15 @@ export function DraftPanel({
           })}
           {" · "}
           {draft.body.length.toLocaleString()} characters
-        </span>
-      </div>
+        </CardMeta>
+      </CardHeader>
 
-      <p className="mt-3 whitespace-pre-line text-sm leading-relaxed">{draft.body}</p>
+      <CardBody>
+        <p className="text-md whitespace-pre-line text-pretty leading-relaxed">{draft.body}</p>
+      </CardBody>
 
-      <div className="mt-5 border-t border-border pt-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="border-t border-border px-4 py-3.5">
+        <p className="eyebrow">
           {draft.checks.length === 0
             ? "Checked on submit"
             : failed.length === 0
@@ -47,7 +51,7 @@ export function DraftPanel({
         </p>
         <CheckList checks={draft.checks} />
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -62,7 +66,7 @@ export function DraftPanel({
 export function CheckList({ checks }: { checks: ReadonlyArray<StoredCheck> }) {
   if (checks.length === 0) {
     return (
-      <p className="mt-2 text-sm text-pretty text-muted-foreground">
+      <p className="mt-2 max-w-prose text-sm text-pretty text-muted-foreground">
         This brief sets no requirements, so there was nothing to check. Every rule
         passes vacuously — which is what creative freedom means, not a check that
         failed to run.
@@ -75,19 +79,11 @@ export function CheckList({ checks }: { checks: ReadonlyArray<StoredCheck> }) {
   return (
     <ul className="mt-3 space-y-2.5">
       {ordered.map((check, index) => (
-        <li key={`${check.ruleKey}:${index}`} className="flex gap-3">
-          <span
-            aria-hidden
-            className={
-              check.status === "fail"
-                ? "mt-0.5 size-4 shrink-0 rounded-full bg-destructive/15 text-center text-[10px] font-bold leading-4 text-destructive"
-                : check.status === "warn"
-                  ? "mt-0.5 size-4 shrink-0 rounded-full bg-muted text-center text-[10px] font-bold leading-4 text-muted-foreground"
-                  : "mt-0.5 size-4 shrink-0 rounded-full bg-brand-soft text-center text-[10px] font-bold leading-4 text-brand"
-            }
-          >
-            {check.status === "fail" ? "✕" : check.status === "warn" ? "!" : "✓"}
-          </span>
+        <li key={`${check.ruleKey}:${index}`} className="flex gap-2.5">
+          <StatusDot
+            status={check.status === "fail" ? "fail" : check.status === "warn" ? "warn" : "pass"}
+            className="mt-0.5"
+          />
 
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">
@@ -97,8 +93,12 @@ export function CheckList({ checks }: { checks: ReadonlyArray<StoredCheck> }) {
             {check.explanation ? (
               <p className="text-sm text-pretty text-muted-foreground">{check.explanation}</p>
             ) : null}
+            {/* The quoted span sits in mono behind a rule: it is a verbatim
+                slice of the draft, and setting it apart from the prose around
+                it is what makes it read as evidence rather than as more
+                commentary. */}
             {check.evidence ? (
-              <p className="mt-1 border-l-2 border-border pl-3 text-sm text-pretty text-muted-foreground">
+              <p className="mt-1 border-l-2 border-border pl-3 font-mono text-xs text-pretty text-muted-foreground">
                 {check.evidence}
               </p>
             ) : null}

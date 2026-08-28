@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { describeRequirements, isVacuous, type BriefRequirements } from "@/lib/campaign/requirements";
 import type { BriefMode } from "@/lib/campaign/parse";
 
@@ -27,47 +29,48 @@ export function BriefPanel({
   const lines = describeRequirements(requirements);
 
   return (
-    <section className="rounded-lg border border-border p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-medium">The brief</h2>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {MODE_LABEL[mode]}
-        </span>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>The brief</CardTitle>
+        <Badge variant="neutral">{MODE_LABEL[mode]}</Badge>
+      </CardHeader>
 
-      {body ? (
-        <p className="mt-3 whitespace-pre-line text-sm leading-relaxed">{body}</p>
-      ) : (
-        <p className="mt-3 text-sm text-muted-foreground">No body recorded.</p>
-      )}
+      <CardBody>
+        {body ? (
+          <p className="text-md whitespace-pre-line text-pretty leading-relaxed">{body}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground">No body recorded.</p>
+        )}
+      </CardBody>
 
-      <div className="mt-5 border-t border-border pt-4">
+      <div className="border-t border-border px-4 py-3.5">
         {isVacuous(requirements) ? (
-          <p className="text-sm text-pretty text-muted-foreground">
+          <p className="max-w-prose text-sm text-pretty text-muted-foreground">
             {mode === "creative_freedom"
               ? "No requirements, by definition. Every deterministic check passes and the creator writes it their way."
               : "A specific brief with nothing required. Every deterministic check passes vacuously, exactly as it would under creative freedom — the difference is that this one can have rules added to it."}
           </p>
         ) : (
           <>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Checked on submit
-            </p>
-            <dl className="mt-2 space-y-1.5">
+            <p className="eyebrow">Checked on submit</p>
+            {/* A two-column grid rather than a wrapped run of dt/dd pairs: the
+                labels are short and repetitive, so aligning them lets the rules
+                themselves be read down the right-hand column. */}
+            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
               {lines.map((line) => (
-                <div key={line.label} className="flex flex-wrap gap-x-2 text-sm">
-                  <dt className="text-muted-foreground">{line.label}</dt>
+                <div key={line.label} className="col-span-2 grid grid-cols-subgrid">
+                  <dt className="whitespace-nowrap text-muted-foreground">{line.label}</dt>
                   <dd className="text-pretty">{line.detail}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-3 text-xs text-pretty text-muted-foreground">
+            <p className="mt-3 max-w-prose text-xs text-pretty text-muted-foreground">
               Each of these runs against the draft when the creator submits it, and a
               failure has to cite the span it judged.
             </p>
           </>
         )}
       </div>
-    </section>
+    </Card>
   );
 }

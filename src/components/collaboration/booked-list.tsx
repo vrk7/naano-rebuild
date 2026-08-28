@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { STATE_LABEL, needsAction, type CollaborationState } from "@/lib/collaboration/machine";
 import { formatCents } from "@/lib/posts/metrics";
 import type { CampaignCollaboration } from "@/lib/collaboration/queries";
@@ -21,29 +23,27 @@ export function BookedList({
   now: Date;
 }) {
   return (
-    <ul className="mt-4 space-y-3">
+    <ul className="space-y-2">
       {collaborations.map((collaboration) => (
-        <li key={collaboration.id} className="rounded-xl border border-border p-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <li key={collaboration.id} className="rounded-lg border border-border p-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <Link
               href={`/brand/collaborations/${collaboration.id}`}
-              className="font-medium underline-offset-4 hover:underline"
+              className="text-md font-medium underline-offset-4 outline-none hover:underline focus-visible:underline"
             >
               {collaboration.creator.displayName}
             </Link>
-            <span className="flex items-center gap-2 text-xs">
+            <span className="flex items-center gap-1.5">
+              {/* The accent marks the one row that is this reader's move. The
+                  state badge stays neutral so the two do not compete. */}
               {needsAction(collaboration.state, "brand") ? (
-                <span className="rounded-full bg-brand-soft px-2 py-0.5 font-medium text-brand">
-                  Waiting on you
-                </span>
+                <Badge variant="accent">Waiting on you</Badge>
               ) : null}
-              <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-                {STATE_LABEL[collaboration.state]}
-              </span>
+              <Badge variant="neutral">{STATE_LABEL[collaboration.state]}</Badge>
             </span>
           </div>
 
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="num mt-2 text-sm tabular-nums text-muted-foreground">
             {formatCents(collaboration.priceCents)} committed
             {collaboration.postBy ? ` · post by ${collaboration.postBy}` : ""}
             {collaboration.approvalRequired ? " · you approve the draft" : " · no approval needed"}
@@ -58,9 +58,10 @@ export function BookedList({
               booking is a click away rather than gone. */}
           <Link
             href={`/brand/creators/${collaboration.creator.id}?campaign=${campaignId}`}
-            className="mt-1 inline-block text-xs text-muted-foreground underline-offset-4 hover:underline"
+            className="mt-1.5 inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:underline"
           >
-            Creator profile and score →
+            Creator profile and score
+            <ArrowRight aria-hidden className="size-3" />
           </Link>
         </li>
       ))}

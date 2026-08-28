@@ -38,7 +38,7 @@ export function AudiencePanel({
   }
 
   return (
-    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
       {SCORE_DIMENSIONS.map((dimension) => (
         <DimensionCard
           key={dimension}
@@ -77,24 +77,24 @@ function DimensionCard({
   const absent = [...targets].filter((value) => !rows.some((row) => row.value === value));
 
   return (
-    <section className="rounded-lg border border-border p-4">
-      <div className="flex items-baseline justify-between gap-3">
+    <section className="rounded-lg border border-border">
+      <div className="flex items-baseline justify-between gap-3 rounded-t-lg border-b border-border bg-subtle px-3.5 py-2">
         <h3 className="text-sm font-medium">{DIMENSION_LABEL[dimension]}</h3>
         {targets.size === 0 ? (
           <span className="text-xs text-muted-foreground">not targeted</span>
         ) : showOverlap ? (
-          <span className="text-xs tabular-nums text-muted-foreground">
+          <span className="num text-xs tabular-nums text-muted-foreground">
             {Math.round(inside * 100)}% inside your targets
           </span>
         ) : null}
       </div>
 
       {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="px-3.5 py-3 text-sm text-muted-foreground">
           Nothing observed for this dimension in the latest snapshot.
         </p>
       ) : (
-        <dl className="mt-3 space-y-1.5">
+        <dl className="space-y-1.5 px-3.5 py-3">
           {rows.map((row) => {
             const isTargeted = targets.has(row.value);
             return (
@@ -122,7 +122,7 @@ function DimensionCard({
                 </dd>
                 <dd
                   className={cn(
-                    "text-right text-xs tabular-nums",
+                    "num text-right text-xs tabular-nums",
                     isTargeted ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
@@ -135,7 +135,7 @@ function DimensionCard({
       )}
 
       {absent.length > 0 ? (
-        <p className="mt-3 border-t border-border pt-2 text-xs text-pretty text-muted-foreground">
+        <p className="border-t border-border px-3.5 py-2 text-xs text-pretty text-muted-foreground">
           No audience at all in:{" "}
           {absent.map((value) => taxonomy.labelFor(dimension, value)).join(", ")}
         </p>

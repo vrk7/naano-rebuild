@@ -1,12 +1,26 @@
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { quotableValue, type CreatorScore } from "@/lib/score/creator";
 import { scoreBand } from "@/lib/marketplace/ranking";
 
-const BAND_STYLE = {
-  strong: "border-brand/30 bg-brand-soft text-brand",
-  partial: "border-border bg-muted/60 text-foreground",
-  weak: "border-border bg-muted/40 text-muted-foreground",
-  withheld: "border-dashed border-border bg-transparent text-muted-foreground",
+/**
+ * The bar under the figure carries the band. The figure itself is always plain
+ * foreground.
+ *
+ * This replaces a tinted tile per band. Two reasons the meter is better than
+ * the fill it replaces: a 31 and a 94 now differ by bar *length* as well as by
+ * digits, so the band is legible without reading the number or decoding a
+ * colour; and the number stops being printed on a coloured ground, which is
+ * what was costing it contrast in the two weakest bands.
+ *
+ * The accent appears only on `strong`. A weak score is drawn quiet, never red —
+ * it is an accurate answer, not a fault.
+ */
+const BAND_METER = {
+  strong: "bg-brand",
+  partial: "bg-foreground/45",
+  weak: "bg-foreground/20",
+  withheld: "bg-transparent",
 } as const;
 
 const CONFIDENCE_NOTE = {
@@ -34,45 +48,58 @@ export function ScoreBadge({
 }) {
   const value = quotableValue(score);
   const band = scoreBand(score);
+  const isLarge = size === "large";
 
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center rounded-xl border text-center",
-        BAND_STYLE[band],
-        size === "large" ? "size-24 gap-0.5" : "size-16 gap-0.5",
-        className,
-      )}
-    >
-      {value === null ? (
+  if (value === null) {
+    return (
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center rounded-md border border-dashed border-border px-1.5 text-center",
+          isLarge ? "size-24" : "size-16",
+          className,
+        )}
+      >
         <span
           className={cn(
-            "px-1.5 font-medium leading-tight text-balance",
-            size === "large" ? "text-xs" : "text-[0.62rem]",
+            "font-medium leading-tight text-balance text-muted-foreground",
+            isLarge ? "text-xs" : "text-2xs",
           )}
         >
           {score.kind === "unscoreable" ? "No ICP targets" : "Not enough data"}
         </span>
-      ) : (
-        <>
-          <span
-            className={cn(
-              "font-semibold tabular-nums",
-              size === "large" ? "text-3xl" : "text-xl",
-            )}
-          >
-            {value}
-          </span>
-          <span
-            className={cn(
-              "leading-none opacity-70",
-              size === "large" ? "text-[0.65rem]" : "text-[0.55rem]",
-            )}
-          >
-            / 100
-          </span>
-        </>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center rounded-md border border-border",
+        isLarge ? "size-24 gap-1 px-3" : "size-16 gap-0.5 px-2",
+        className,
       )}
+    >
+      <span
+        className={cn(
+          "num font-semibold tabular-nums tracking-[-0.02em]",
+          isLarge ? "text-4xl" : "text-2xl",
+        )}
+      >
+        {value}
+      </span>
+      <span className="text-2xs leading-none text-muted-foreground">/ 100</span>
+
+      {/* Magnitude, drawn. `aria-hidden` because the figure above already says
+          it — a screen reader does not need the number twice. */}
+      <span
+        aria-hidden
+        className="mt-0.5 h-0.5 w-full overflow-hidden rounded-full bg-muted"
+      >
+        <span
+          className={cn("block h-full rounded-full", BAND_METER[band])}
+          style={{ width: `${value}%` }}
+        />
+      </span>
     </div>
   );
 }
@@ -86,16 +113,11 @@ export function ConfidenceNote({
   className?: string;
 }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem] font-medium",
-        score.confidence === "low"
-          ? "bg-muted text-muted-foreground"
-          : "bg-muted/60 text-muted-foreground",
-        className,
-      )}
+    <Badge
+      variant={score.confidence === "low" ? "outline" : "neutral"}
+      className={className}
     >
       {CONFIDENCE_NOTE[score.confidence]}
-    </span>
+    </Badge>
   );
 }

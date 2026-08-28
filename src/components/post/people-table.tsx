@@ -1,3 +1,14 @@
+import {
+  TableFrame,
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+  CellNote,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { ICP_MATCH_THRESHOLD } from "@/lib/score/weights";
 import { bestScore, isMatched, type EngagedPerson } from "@/lib/posts/metrics";
 
@@ -20,76 +31,69 @@ export function PeopleTable({ people }: { people: ReadonlyArray<EngagedPerson> }
   }
 
   return (
-    <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-          <tr>
-            <th className="px-4 py-3 font-medium">Person</th>
-            <th className="px-4 py-3 font-medium">Seniority</th>
-            <th className="px-4 py-3 font-medium">Company</th>
+    <TableFrame className="mt-4">
+      <Table>
+        <THead>
+          <TR>
+            <TH>Person</TH>
+            <TH>Seniority</TH>
+            <TH>Company</TH>
             {/* "Closest", not "matching": this column is populated for people
                 below the threshold too, and calling their nearest ICP a match is
                 exactly the overclaim this page exists to avoid. */}
-            <th className="px-4 py-3 font-medium">Closest ICP</th>
-            <th className="px-4 py-3 text-right font-medium">Score</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
+            <TH>Closest ICP</TH>
+            <TH numeric>Score</TH>
+          </TR>
+        </THead>
+        <TBody>
           {people.map((person) => {
             const score = bestScore(person);
             const matched = isMatched(person);
             const best = person.matches[0];
 
             return (
-              <tr key={person.id} className="hover:bg-muted/30">
-                <td className="px-4 py-3">
+              <TR key={person.id} interactive>
+                <TD>
                   <span className="font-medium">{person.fullName}</span>
-                  <span className="block text-xs text-muted-foreground">
+                  <CellNote>
                     {person.roleTitle ?? "—"}
                     {person.engagementKinds.length > 1
                       ? ` · ${person.engagementKinds.join(", ")}`
                       : ""}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">{person.seniority ?? "—"}</td>
-                <td className="px-4 py-3">
+                  </CellNote>
+                </TD>
+                <TD className="text-muted-foreground">{person.seniority ?? "—"}</TD>
+                <TD>
                   {person.companyName ?? <span className="text-muted-foreground">—</span>}
                   {person.companyCountry ? (
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      {person.companyCountry}
-                    </span>
+                    <CellNote>{person.companyCountry}</CellNote>
                   ) : null}
-                </td>
-                <td className="px-4 py-3">
-                  {best ? (
-                    <span className={matched ? "" : "text-muted-foreground"}>
-                      {best.icpLabel}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">No ICP scored</span>
+                </TD>
+                <TD className={matched ? undefined : "text-muted-foreground"}>
+                  {best ? best.icpLabel : "No ICP scored"}
+                </TD>
+                {/* Above the threshold the figure gets weight, below it goes
+                    quiet. No fill either way — a column of tinted chips stops
+                    being a column of numbers you can read down. */}
+                <TD
+                  numeric
+                  className={cn(
+                    "font-medium",
+                    matched ? "text-foreground" : "font-normal text-muted-foreground",
                   )}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span
-                    className={
-                      matched
-                        ? "rounded-md bg-brand-soft px-2 py-0.5 font-medium tabular-nums"
-                        : "tabular-nums text-muted-foreground"
-                    }
-                    title={
-                      matched
-                        ? undefined
-                        : `Below the ${ICP_MATCH_THRESHOLD} threshold for counting as a match`
-                    }
-                  >
-                    {score}
-                  </span>
-                </td>
-              </tr>
+                  title={
+                    matched
+                      ? undefined
+                      : `Below the ${ICP_MATCH_THRESHOLD} threshold for counting as a match`
+                  }
+                >
+                  {score}
+                </TD>
+              </TR>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+        </TBody>
+      </Table>
+    </TableFrame>
   );
 }

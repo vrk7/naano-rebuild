@@ -1,6 +1,11 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { CreatorRow } from "./creator-row";
+import { Callout } from "@/components/ui/callout";
+import { Metric, MetricRow } from "@/components/ui/metric";
+import { PageHeader } from "@/components/ui/page";
+import { cn } from "@/lib/utils";
 import { reachesCampaign } from "@/lib/campaign/reach";
 import {
   paginate,
@@ -79,71 +84,71 @@ export function MarketplaceView({
 
   return (
     <>
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Creators</h1>
-        <p className="mt-1 text-sm text-pretty text-muted-foreground">
-          {stats.total} creators, each scored against your {icpCount} active{" "}
-          {icpCount === 1 ? "ICP" : "ICPs"}. Every card shows the best of those scores
-          and says which ICP produced it.
-        </p>
-      </header>
+      <PageHeader
+        title="Creators"
+        description={`${stats.total} creators, each scored against your ${icpCount} active ${
+          icpCount === 1 ? "ICP" : "ICPs"
+        }. Every card shows the best of those scores and says which ICP produced it.`}
+      />
 
       {campaign ? (
         <CampaignBanner campaign={campaign} outOfRegion={outOfRegion.length} />
       ) : (
-        <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-pretty text-muted-foreground">
+        <Callout tone="empty" className="mt-4">
           Browsing without a campaign. Scores are the same either way — they read your
           ICPs, not a campaign — but booking attaches a creator to a campaign, so
-          start from{" "}
-          <Link href="/brand" className="text-foreground underline underline-offset-4">
-            one of yours
-          </Link>{" "}
-          when you are ready to book.
-        </p>
+          start from <Link href="/brand">one of yours</Link> when you are ready to book.
+        </Callout>
       )}
 
       {/* The distribution, stated up front. A marketplace whose scores cluster at
           the top is one that cannot say no, and this line is what makes that
           checkable at a glance rather than by scrolling. */}
-      <dl className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-border p-4 sm:grid-cols-4">
-        <Stat label="Scored" value={`${stats.scored}`} />
-        <Stat label="Range" value={stats.range} />
-        <Stat label="Median" value={`${stats.median}`} />
-        <Stat label="Withheld" value={`${stats.withheld}`} note="sample too thin" />
-      </dl>
+      <MetricRow className="mt-6">
+        <Metric label="Scored" value={stats.scored} />
+        <Metric label="Range" value={stats.range} />
+        <Metric label="Median" value={stats.median} />
+        <Metric label="Withheld" value={stats.withheld} note="sample too thin" />
+      </MetricRow>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1 text-sm">
-          <span className="mr-1 text-muted-foreground">Sort</span>
-          {(Object.keys(SORT_LABEL) as Sort[]).map((option) => (
-            <Link
-              key={option}
-              href={link({ sort: option, page: 1 })}
-              aria-current={option === sort ? "true" : undefined}
-              className={
-                option === sort
-                  ? "rounded-md bg-muted px-2.5 py-1 font-medium"
-                  : "rounded-md px-2.5 py-1 text-muted-foreground hover:bg-muted/50"
-              }
-            >
-              {SORT_LABEL[option]}
-            </Link>
-          ))}
+        <div className="flex items-center gap-2">
+          <span className="eyebrow">Sort</span>
+          {/* One bordered track with the active segment filled, rather than two
+              links that only differ by weight. The control now looks like a
+              control, and which option is live is legible without comparing. */}
+          <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+            {(Object.keys(SORT_LABEL) as Sort[]).map((option) => (
+              <Link
+                key={option}
+                href={link({ sort: option, page: 1 })}
+                aria-current={option === sort ? "true" : undefined}
+                className={cn(
+                  "inline-flex h-6 items-center rounded-[5px] px-2 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25",
+                  option === sort
+                    ? "bg-muted font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {SORT_LABEL[option]}
+              </Link>
+            ))}
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="num text-xs tabular-nums text-muted-foreground">
           Page {slice.page} of {slice.pageCount}
         </p>
       </div>
 
       {sort === "followers" ? (
-        <p className="mt-3 rounded-lg border border-dashed border-border p-3 text-sm text-pretty text-muted-foreground">
+        <Callout tone="note" className="mt-3">
           Sorted by reach, with the match score left in place. This is the ranking
           a follower count gives you on its own — the creators at the top of this
           list are the ones a marketplace without a score would recommend first.
-        </p>
+        </Callout>
       ) : null}
 
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 space-y-2">
         {slice.items.map((entry) => (
           <CreatorRow
             key={entry.creator.id}
@@ -155,13 +160,11 @@ export function MarketplaceView({
       </ul>
 
       {slice.items.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-dashed border-border p-6 text-sm text-pretty text-muted-foreground">
+        <Callout tone="empty" className="mt-4 py-6 text-center">
           No creators reach this campaign&rsquo;s regions.{" "}
-          <Link href={link({ region: false, page: 1 })} className="text-foreground underline underline-offset-4">
-            Show the rest
-          </Link>{" "}
-          to see who was filtered out and why.
-        </p>
+          <Link href={link({ region: false, page: 1 })}>Show the rest</Link> to see who
+          was filtered out and why.
+        </Callout>
       ) : null}
 
       <Pager link={link} page={slice.page} pageCount={slice.pageCount} />
@@ -185,13 +188,10 @@ function CampaignBanner({
   outOfRegion: number;
 }) {
   return (
-    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
-      <p className="text-sm">
+    <Callout tone="note" className="mt-4">
+      <p className="text-sm text-foreground">
         Scoped to{" "}
-        <Link
-          href={`/brand/campaigns/${campaign.id}`}
-          className="font-medium underline underline-offset-4"
-        >
+        <Link href={`/brand/campaigns/${campaign.id}`} className="font-medium">
           {campaign.name}
         </Link>
         . Booking from here attaches the creator to it.
@@ -203,29 +203,19 @@ function CampaignBanner({
       </p>
       {outOfRegion > 0 ? (
         <p className="mt-2 text-sm">
-          <span className="text-muted-foreground">
+          <span>
             {outOfRegion} {outOfRegion === 1 ? "creator reaches" : "creators reach"} none of
             those regions.
           </span>{" "}
           <Link
             href={`/brand/campaigns/${campaign.id}/creators?region=campaign`}
-            className="font-medium underline underline-offset-4"
+            className="font-medium"
           >
             Hide them
           </Link>
         </p>
       ) : null}
-    </div>
-  );
-}
-
-function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
-  return (
-    <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 font-medium tabular-nums">{value}</dd>
-      {note ? <dd className="text-xs text-muted-foreground">{note}</dd> : null}
-    </div>
+    </Callout>
   );
 }
 
@@ -240,21 +230,36 @@ function Pager({
 }) {
   if (pageCount <= 1) return null;
 
+  // A disabled end of the range is rendered as a non-link rather than being
+  // removed, so the pair does not shift sideways between page 1 and page 2.
+  const step =
+    "inline-flex h-7 items-center gap-1 rounded-md border px-2 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25";
+  const enabled = "border-border text-foreground hover:bg-muted";
+  const disabled = "border-transparent text-muted-foreground/60";
+
   return (
-    <nav className="mt-8 flex items-center justify-between text-sm">
+    <nav aria-label="Pagination" className="mt-8 flex items-center justify-between">
       {page > 1 ? (
-        <Link href={link({ page: page - 1 })} className="underline-offset-4 hover:underline">
-          ← Previous
+        <Link href={link({ page: page - 1 })} className={cn(step, enabled)}>
+          <ChevronLeft aria-hidden className="size-3.5" />
+          Previous
         </Link>
       ) : (
-        <span className="text-muted-foreground">← Previous</span>
+        <span className={cn(step, disabled)}>
+          <ChevronLeft aria-hidden className="size-3.5" />
+          Previous
+        </span>
       )}
       {page < pageCount ? (
-        <Link href={link({ page: page + 1 })} className="underline-offset-4 hover:underline">
-          Next →
+        <Link href={link({ page: page + 1 })} className={cn(step, enabled)}>
+          Next
+          <ChevronRight aria-hidden className="size-3.5" />
         </Link>
       ) : (
-        <span className="text-muted-foreground">Next →</span>
+        <span className={cn(step, disabled)}>
+          Next
+          <ChevronRight aria-hidden className="size-3.5" />
+        </span>
       )}
     </nav>
   );

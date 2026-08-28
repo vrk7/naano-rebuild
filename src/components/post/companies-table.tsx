@@ -1,3 +1,4 @@
+import { TableFrame, Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import type { CompanyRollup } from "@/lib/posts/metrics";
 
 export function CompaniesTable({ companies }: { companies: ReadonlyArray<CompanyRollup> }) {
@@ -10,33 +11,32 @@ export function CompaniesTable({ companies }: { companies: ReadonlyArray<Company
   }
 
   return (
-    <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-          <tr>
-            <th className="px-4 py-3 font-medium">Company</th>
-            <th className="px-4 py-3 font-medium">Country</th>
-            <th className="px-4 py-3 text-right font-medium">Engaged</th>
-            <th className="px-4 py-3 text-right font-medium">In ICP</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
+    <TableFrame className="mt-4">
+      <Table>
+        <THead>
+          <TR>
+            <TH>Company</TH>
+            <TH>Country</TH>
+            <TH numeric>Engaged</TH>
+            <TH numeric>In ICP</TH>
+          </TR>
+        </THead>
+        <TBody>
           {companies.map((company) => (
-            <tr key={company.id} className="hover:bg-muted/30">
-              <td className="px-4 py-3 font-medium">{company.name}</td>
-              <td className="px-4 py-3 text-muted-foreground">{company.country ?? "—"}</td>
-              <td className="px-4 py-3 text-right tabular-nums">{company.engaged}</td>
-              <td className="px-4 py-3 text-right tabular-nums">
-                {company.matched > 0 ? (
-                  company.matched
-                ) : (
-                  <span className="text-muted-foreground">0</span>
-                )}
-              </td>
-            </tr>
+            <TR key={company.id} interactive>
+              <TD className="font-medium">{company.name}</TD>
+              <TD className="text-muted-foreground">{company.country ?? "—"}</TD>
+              <TD numeric>{company.engaged}</TD>
+              {/* A zero is greyed rather than hidden: the row is here because
+                  the company engaged, and "none of them were yours" is the
+                  answer, not a missing value. */}
+              <TD numeric className={company.matched === 0 ? "text-muted-foreground" : undefined}>
+                {company.matched}
+              </TD>
+            </TR>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TBody>
+      </Table>
+    </TableFrame>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ConfidenceNote, ScoreBadge } from "./score-badge";
+import { Badge } from "@/components/ui/badge";
 import { formatCents } from "@/lib/posts/metrics";
 import { quotableValue, type CreatorScore } from "@/lib/score/creator";
 import type { CampaignReach } from "@/lib/campaign/reach";
@@ -36,14 +37,16 @@ export function CreatorRow({
     <li>
       <Link
         href={href}
-        className="flex gap-5 rounded-xl border border-border p-4 transition-colors hover:bg-muted/40 sm:p-5"
+        className="flex gap-4 rounded-lg border border-border p-3 transition-colors outline-none hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/25 sm:p-4"
       >
         <ScoreBadge score={best.score} className="shrink-0" />
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="font-medium">{creator.displayName}</span>
-            <span className="text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            <span className="text-md font-medium">{creator.displayName}</span>
+            {/* Followers and price are figures in a list that gets compared row
+                to row, so they are tabular even out here in prose. */}
+            <span className="num text-xs tabular-nums text-muted-foreground">
               {creator.followers.toLocaleString()} followers
               {country ? ` · ${country}` : ""}
               {creator.priceCents !== null ? ` · ${formatCents(creator.priceCents)} per post` : ""}
@@ -54,18 +57,18 @@ export function CreatorRow({
             <p className="mt-0.5 truncate text-sm text-muted-foreground">{creator.headline}</p>
           ) : null}
 
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <ConfidenceNote score={best.score} />
             {/* Which ICP the number belongs to. A score with no stated question
                 behind it is the constant we are replacing — and by the same
                 logic, a withheld score names no ICP, because none of them was
                 answered. */}
             {quotableValue(best.score) !== null ? (
-              <span className="text-xs text-muted-foreground">vs. {best.icp.label}</span>
+              <Badge variant="outline">vs. {best.icp.label}</Badge>
             ) : null}
           </div>
 
-          <p className="mt-2 text-sm text-pretty text-muted-foreground">
+          <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
             {rowVerdict(best.score, creator.sampleSize, creator.postsAnalyzed)}
           </p>
 
@@ -130,7 +133,13 @@ function ReachLine({ reach }: { reach: CampaignReach }) {
   const shown = percent === 0 && !isNone ? "<1" : `${percent}`;
 
   return (
-    <p className={isNone ? "mt-1 text-sm text-foreground" : "mt-1 text-sm text-muted-foreground"}>
+    <p
+      className={
+        isNone
+          ? "mt-1 text-sm font-medium text-foreground"
+          : "mt-1 text-sm text-muted-foreground"
+      }
+    >
       {isNone
         ? "None of this audience is in the campaign's regions."
         : `${shown}% of this audience is in the campaign's regions.`}

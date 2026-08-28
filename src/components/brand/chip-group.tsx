@@ -41,20 +41,23 @@ export function ChipGroup({
   }
 
   return (
-    <fieldset className="space-y-2">
+    <fieldset className="space-y-1.5">
       <legend className="text-sm font-medium">{legend}</legend>
 
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1">
         {options.map((option) => {
           const isPicked = selected.includes(option.value);
           return (
             <label
               key={option.value}
               className={cn(
-                "cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors",
+                // Square-ish, not pills: these are toggles in a dense grid, and
+                // a matched radius across chips, badges and buttons is what
+                // keeps four ICP fieldsets from reading as four widgets.
+                "cursor-pointer rounded-md border px-2 py-0.5 text-xs transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/25",
                 isPicked
-                  ? "border-brand bg-brand-soft text-brand"
-                  : "border-border text-muted-foreground hover:bg-muted/50",
+                  ? "border-brand/40 bg-brand-soft font-medium text-brand"
+                  : "border-border text-muted-foreground hover:bg-muted",
               )}
             >
               <input
@@ -71,7 +74,7 @@ export function ChipGroup({
         })}
       </div>
 
-      <p className="text-xs text-pretty text-muted-foreground">
+      <p className="mt-1.5 text-xs text-pretty text-muted-foreground">
         {selected.length === 0
           ? emptyMeans
           : selected.length === options.length
