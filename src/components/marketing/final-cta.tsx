@@ -40,7 +40,7 @@ export function FinalCta() {
                   size="lg"
                   className="h-11 gap-2 px-5 text-[0.95rem] bg-brand text-brand-foreground hover:bg-brand/85"
                 >
-                  <Link href="/sign-up">
+                  <Link href="/register">
                     Launch a campaign
                     <ArrowRight className="size-4" />
                   </Link>

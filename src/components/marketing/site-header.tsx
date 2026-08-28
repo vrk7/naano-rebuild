@@ -40,7 +40,7 @@ export function SiteHeader() {
             <Link href="/sign-in">Sign in</Link>
           </Button>
           <Button asChild size="lg" className="bg-brand text-brand-foreground hover:bg-brand/85">
-            <Link href="/sign-up">Launch a campaign</Link>
+            <Link href="/register">Launch a campaign</Link>
           </Button>
 
           <details className="relative md:hidden">

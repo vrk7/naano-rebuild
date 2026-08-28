@@ -30,7 +30,7 @@ const PLANS: readonly Plan[] = [
       "Ledger-backed budget commits",
     ],
     cta: "Start free",
-    href: "/sign-up",
+    href: "/register",
   },
   {
     name: "Growth",
@@ -46,7 +46,7 @@ const PLANS: readonly Plan[] = [
       "Priority matching support",
     ],
     cta: "Start 14-day trial",
-    href: "/sign-up?plan=growth",
+    href: "/register",
     isFeatured: true,
   },
   {

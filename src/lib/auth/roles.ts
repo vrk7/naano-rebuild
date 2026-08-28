@@ -16,6 +16,15 @@ export const ROLE_HOME: Readonly<Record<Role, string>> = {
 };
 
 export const LOGIN_PATH = "/login";
+
+/**
+ * The role picker, and the front door of a two-sided product.
+ *
+ * `/register` asks which side you are on and branches; `/register/brand` and
+ * `/register/creator` are the two branches. The path matches naano's own
+ * (`recon/brand/01`), which is the clearest screen it has.
+ */
+export const REGISTER_PATH = "/register";
 export const RETURN_TO_PARAM = "returnTo";
 
 /** Fallback when a signed-in session carries no usable role. */
@@ -26,12 +35,23 @@ export function isRole(value: unknown): value is Role {
 }
 
 /**
- * Paths served to everyone, signed in or not: the marketing page, the login
- * screen, and the auth endpoints that run before a session exists.
+ * The screens that exist to get you a session: signing in, and the role picker
+ * with its two branches. A signed-in request for one of these is sent home
+ * rather than allowed, since it has already answered the question they ask.
+ */
+export function isAuthScreen(pathname: string): boolean {
+  if (pathname === LOGIN_PATH || pathname.startsWith(`${LOGIN_PATH}/`)) return true;
+  if (pathname === REGISTER_PATH || pathname.startsWith(`${REGISTER_PATH}/`)) return true;
+  return false;
+}
+
+/**
+ * Paths served to everyone, signed in or not: the marketing page, the auth
+ * screens, and the auth endpoints that run before a session exists.
  */
 export function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return true;
-  if (pathname === LOGIN_PATH || pathname.startsWith(`${LOGIN_PATH}/`)) return true;
+  if (isAuthScreen(pathname)) return true;
   if (pathname.startsWith("/auth/")) return true;
   return false;
 }
@@ -80,8 +100,9 @@ export type RouteDecision =
  * - a signed-out request for anything non-public goes to login carrying where
  *   it was headed, so signing in resumes rather than dumping the user at a home
  *   page having forgotten the link they followed
- * - a signed-in request for the login screen leaves it, honouring returnTo when
- *   it is safe and points at somewhere this role may actually go
+ * - a signed-in request for an auth screen leaves it, honouring returnTo when
+ *   it is safe and points at somewhere this role may actually go. That covers
+ *   the role picker too: someone who already has a session has already picked
  * - a signed-in request for the other role's area goes to its own home
  */
 export function decideRoute(input: {
@@ -91,7 +112,7 @@ export function decideRoute(input: {
   returnTo: string | null;
 }): RouteDecision {
   const { pathname, search, role, returnTo } = input;
-  const isLogin = pathname === LOGIN_PATH;
+  const isAuth = isAuthScreen(pathname);
 
   if (!role) {
     if (isPublicPath(pathname)) return { kind: "allow" };
@@ -104,7 +125,7 @@ export function decideRoute(input: {
 
   const home = ROLE_HOME[role];
 
-  if (isLogin) {
+  if (isAuth) {
     const candidate = safeReturnTo(returnTo);
     // A returnTo pointing into the other role's area is dropped rather than
     // followed, or signing in would bounce twice to land somewhere unexpected.

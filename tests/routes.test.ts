@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   LOGIN_PATH,
+  REGISTER_PATH,
   ROLE_HOME,
   decideRoute,
   isPublicPath,
@@ -28,10 +29,19 @@ describe("public paths", () => {
     expect(isPublicPath("/auth/signout")).toBe(true);
   });
 
+  // The role picker is the front door of a two-sided product, so it and both
+  // its branches have to be reachable without a session.
+  it("lets anyone reach the role picker and both branches", () => {
+    expect(isPublicPath(REGISTER_PATH)).toBe(true);
+    expect(isPublicPath("/register/brand")).toBe(true);
+    expect(isPublicPath("/register/creator")).toBe(true);
+  });
+
   it("treats everything else as protected", () => {
     expect(isPublicPath("/brand")).toBe(false);
     expect(isPublicPath("/creator")).toBe(false);
     expect(isPublicPath("/loginish")).toBe(false);
+    expect(isPublicPath("/registerish")).toBe(false);
   });
 });
 
@@ -51,7 +61,7 @@ describe("signed out", () => {
   });
 
   it("reaches public pages untouched", () => {
-    for (const pathname of ["/", "/login"]) {
+    for (const pathname of ["/", "/login", "/register", "/register/creator"]) {
       expect(
         decideRoute({ pathname, search: "", ...signedOut, returnTo: null }),
       ).toEqual({ kind: "allow" });
@@ -82,6 +92,16 @@ describe("routing by role", () => {
     expect(
       decideRoute({ pathname: LOGIN_PATH, search: "", role: "creator", returnTo: null }),
     ).toEqual({ kind: "redirect", to: ROLE_HOME.creator });
+  });
+
+  // Someone with a session has already answered the question the picker asks,
+  // and letting them re-answer it would imply they could switch sides.
+  it("sends a signed-in user away from the role picker and its branches", () => {
+    for (const pathname of [REGISTER_PATH, "/register/brand", "/register/creator"]) {
+      expect(
+        decideRoute({ pathname, search: "", role: "creator", returnTo: null }),
+      ).toEqual({ kind: "redirect", to: ROLE_HOME.creator });
+    }
   });
 
   it("resumes a safe returnTo after signing in", () => {
@@ -115,6 +135,8 @@ describe("routing by role", () => {
     expect(pathRole("/")).toBeNull();
     // A prefix match must not capture an unrelated route.
     expect(pathRole("/branding")).toBeNull();
+    // /register/brand is an auth screen, not the brand area.
+    expect(pathRole("/register/brand")).toBeNull();
   });
 });
 
