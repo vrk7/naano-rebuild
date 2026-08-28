@@ -12,6 +12,8 @@ next-env.d.ts
 
 # env files
 .env*
+# ...except the template, which carries no values and is how anyone else runs this.
+!.env.example
 
 # vercel
 .vercel
