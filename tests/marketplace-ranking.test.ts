@@ -53,6 +53,7 @@ function creator(
     },
     scores,
     best: bestIcpScore(scores),
+    campaignReach: null,
   };
 }
 

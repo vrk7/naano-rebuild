@@ -12,6 +12,7 @@ import {
   quotableValue,
   type CreatorScore,
 } from "@/lib/score/creator";
+import type { CampaignReach } from "@/lib/campaign/reach";
 
 export type IcpSummary = {
   readonly id: string;
@@ -43,6 +44,14 @@ export type RankedCreator = {
   readonly scores: ReadonlyArray<IcpScore>;
   /** The one the card speaks for. */
   readonly best: IcpScore;
+  /**
+   * How far into this campaign's regions the audience reaches, or null when the
+   * list is not scoped to a campaign. Carried rather than computed here: the
+   * score is a fact about the creator and the brand's ICPs, while reach is a
+   * fact about the creator and one campaign, and the ordering rules below only
+   * ever read the first.
+   */
+  readonly campaignReach: CampaignReach | null;
 };
 
 /**

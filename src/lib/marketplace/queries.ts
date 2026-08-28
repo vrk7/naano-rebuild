@@ -8,6 +8,7 @@
  * compares a workspace id.
  */
 
+import { campaignReach, type CampaignReach } from "@/lib/campaign/reach";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/supabase/paginate";
 import { buildTaxonomyLookup, type TaxonomyLookup, type TopicRow } from "@/lib/score/labels";
@@ -37,6 +38,17 @@ export type Marketplace = {
   readonly taxonomy: TaxonomyLookup;
 };
 
+/**
+ * Scoping the marketplace to a campaign (PRODUCT.md step 5).
+ *
+ * Only the campaign's regions reach this far. The score is computed against the
+ * workspace's ICPs either way — a campaign does not change who a brand sells
+ * to — so scoping annotates and filters the list, and never moves a number.
+ */
+export type MarketplaceScope = {
+  readonly campaignGeos: ReadonlyArray<string>;
+};
+
 export type CreatorPost = {
   readonly id: string;
   readonly externalUrl: string;
@@ -61,6 +73,8 @@ export type CreatorProfile = {
   /** Null when the workspace has no active ICPs, so there was nothing to score against. */
   readonly best: IcpScore | null;
   readonly posts: ReadonlyArray<CreatorPost>;
+  /** Set only when the profile was opened from a campaign. */
+  readonly campaignReach: CampaignReach | null;
   readonly taxonomy: TaxonomyLookup;
 };
 
@@ -277,7 +291,7 @@ function scoreAgainstAll(
  * or a placeholder. There is no observation to score, and inventing one is the
  * failure PRODUCT.md opens with.
  */
-export async function loadMarketplace(): Promise<Marketplace> {
+export async function loadMarketplace(scope?: MarketplaceScope): Promise<Marketplace> {
   const supabase = await createClient();
 
   const [topics, icps] = await Promise.all([loadTopics(), loadActiveIcps()]);
@@ -318,6 +332,7 @@ export async function loadMarketplace(): Promise<Marketplace> {
       creator: listingFrom(row, snapshot, rates.get(row.id), creatorTopics.get(row.id) ?? []),
       scores,
       best: bestIcpScore(scores),
+      campaignReach: scope ? campaignReach(audience.facets, scope.campaignGeos) : null,
     });
   }
 
@@ -327,6 +342,7 @@ export async function loadMarketplace(): Promise<Marketplace> {
 /** One creator, with the working for every active ICP. Null when there is no such creator. */
 export async function loadCreatorProfile(
   creatorId: string,
+  scope?: MarketplaceScope,
 ): Promise<CreatorProfile | null> {
   const supabase = await createClient();
 
@@ -372,6 +388,7 @@ export async function loadCreatorProfile(
     scores,
     best: scores.length > 0 ? bestIcpScore(scores) : null,
     posts,
+    campaignReach: scope ? campaignReach(facets, scope.campaignGeos) : null,
     taxonomy,
   };
 }
