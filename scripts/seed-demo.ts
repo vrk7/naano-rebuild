@@ -612,6 +612,73 @@ const COMPANY_SUFFIXES = [
 ];
 const SIZE_BANDS = ["11-50", "51-200", "201-500", "501-1000", "1001-5000"];
 
+/**
+ * Optionally attaches logins to the demo data.
+ *
+ * Without this the demo workspace has no member, so every signed-in brand sees
+ * an empty campaign list and the seeded posts are unreachable through the UI —
+ * RLS is doing its job, there is simply nobody who belongs to the workspace.
+ *
+ * Gated on env vars rather than hardcoding a password: a known credential
+ * committed to a repo is a credential in every clone of it. Skipped silently,
+ * with a note, when they are absent.
+ */
+async function seedDemoLogins(
+  client: SupabaseClient,
+  workspaceId: string,
+  creatorId: string,
+): Promise<string[]> {
+  const email = process.env.SEED_DEMO_EMAIL;
+  const password = process.env.SEED_DEMO_PASSWORD;
+  if (!email || !password) return [];
+
+  const notes: string[] = [];
+  const [local, domain] = email.split("@");
+  if (!domain) throw new Error("SEED_DEMO_EMAIL is not an email address");
+
+  const accounts = [
+    { role: "brand" as const, address: email },
+    { role: "creator" as const, address: `${local}+creator@${domain}` },
+  ];
+
+  for (const account of accounts) {
+    // Remove any user from a previous run so the password is whatever the env
+    // currently says, rather than silently keeping an older one.
+    const { data: existing } = await client.auth.admin.listUsers();
+    const previous = existing?.users.find((u) => u.email === account.address);
+    if (previous) await client.auth.admin.deleteUser(previous.id);
+
+    const { data, error } = await client.auth.admin.createUser({
+      email: account.address,
+      password,
+      email_confirm: true,
+      user_metadata: { role: account.role, display_name: `Demo ${account.role}` },
+    });
+    if (error) throw new Error(`create demo ${account.role} failed: ${error.message}`);
+
+    if (account.role === "brand") {
+      const { error: memberError } = await client
+        .from("workspace_member")
+        .insert({ workspace_id: workspaceId, user_id: data.user.id, role: "owner" });
+      if (memberError) {
+        throw new Error(`add demo owner failed: ${memberError.message}`);
+      }
+    } else {
+      // Claims one of the booked creators, so the creator side has real
+      // collaborations rather than an empty shell.
+      const { error: claimError } = await client
+        .from("creator")
+        .update({ user_id: data.user.id })
+        .eq("id", creatorId);
+      if (claimError) throw new Error(`claim demo creator failed: ${claimError.message}`);
+    }
+
+    notes.push(`${account.role.padEnd(8)} ${account.address}`);
+  }
+
+  return notes;
+}
+
 async function main(): Promise<void> {
   const client = createClient(
     requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
@@ -658,6 +725,30 @@ async function main(): Promise<void> {
   }
   console.log(`\npeople      ${personCache.size}`);
   console.log(`companies   ${companyCache.size}`);
+
+  const firstCollaboration = unwrap(
+    "load first collaboration",
+    await client
+      .from("collaboration")
+      .select("creator_id")
+      .eq("workspace_id", context.workspaceId)
+      .limit(1),
+  ) as Array<{ creator_id: string }>;
+
+  const logins = await seedDemoLogins(
+    client,
+    context.workspaceId,
+    firstCollaboration[0].creator_id,
+  );
+
+  if (logins.length === 0) {
+    console.log(
+      "\nlogins      none — set SEED_DEMO_EMAIL and SEED_DEMO_PASSWORD to attach one",
+    );
+  } else {
+    console.log("\nlogins:");
+    for (const note of logins) console.log(`  ${note}`);
+  }
 }
 
 await main();
