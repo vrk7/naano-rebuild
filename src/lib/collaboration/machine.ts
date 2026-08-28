@@ -198,21 +198,26 @@ function step(
   return { from, to, actor, note };
 }
 
-/** The two refusals every action shares, in the order a caller hits them. */
+/**
+ * The two refusals every action shares, in the order a caller hits them.
+ *
+ * Both sentences reach a person, so they need different halves of the verb:
+ * "it cannot be accepted" and "only the creator can accept an invitation".
+ */
 function unavailable(
   snapshot: CollaborationSnapshot,
   context: TransitionContext,
   allowed: ReadonlyArray<CollaborationState>,
   actor: Actor,
-  verb: string,
+  words: { readonly done: string; readonly act: string },
 ): Transition | null {
   if (!allowed.includes(snapshot.state)) {
     return refuse(
-      `This collaboration is ${STATE_LABEL[snapshot.state].toLowerCase()}, so it cannot be ${verb}.`,
+      `This collaboration is ${STATE_LABEL[snapshot.state].toLowerCase()}, so it cannot be ${words.done}.`,
     );
   }
   if (context.by !== actor) {
-    return refuse(`Only the ${actor} can ${verb} a collaboration at this point.`);
+    return refuse(`Only the ${actor} can ${words.act}.`);
   }
   return null;
 }
@@ -235,7 +240,10 @@ export function transition(
 
   switch (action.kind) {
     case "accept": {
-      const no = unavailable(snapshot, context, ["invited"], "creator", "accepted");
+      const no = unavailable(snapshot, context, ["invited"], "creator", {
+        done: "accepted",
+        act: "accept an invitation",
+      });
       if (no) return no;
       /*
        * A null respond_by is "no deadline was set", not "the deadline has
@@ -253,13 +261,19 @@ export function transition(
     }
 
     case "decline": {
-      const no = unavailable(snapshot, context, ["invited"], "creator", "declined");
+      const no = unavailable(snapshot, context, ["invited"], "creator", {
+        done: "declined",
+        act: "decline an invitation",
+      });
       if (no) return no;
       return move([step(state, "declined", "creator", note(action.note))]);
     }
 
     case "expire": {
-      const no = unavailable(snapshot, context, ["invited"], "system", "expired");
+      const no = unavailable(snapshot, context, ["invited"], "system", {
+        done: "expired",
+        act: "expire an invitation",
+      });
       if (no) return no;
       // The mirror of accept: with no deadline recorded there is nothing to
       // have passed, so the sweep leaves the row alone rather than closing it.
@@ -273,7 +287,10 @@ export function transition(
     }
 
     case "submit_draft": {
-      const no = unavailable(snapshot, context, ["drafting"], "creator", "submitted");
+      const no = unavailable(snapshot, context, ["drafting"], "creator", {
+        done: "submitted",
+        act: "submit a draft",
+      });
       if (no) return no;
       /*
        * The one branch in the machine. `approval_required` is set at booking
@@ -287,7 +304,10 @@ export function transition(
     }
 
     case "approve": {
-      const no = unavailable(snapshot, context, ["in_review"], "brand", "approved");
+      const no = unavailable(snapshot, context, ["in_review"], "brand", {
+        done: "approved",
+        act: "approve a draft",
+      });
       if (no) return no;
       return move([step(state, "approved", "brand")]);
     }
@@ -298,7 +318,7 @@ export function transition(
         context,
         ["in_review"],
         "brand",
-        "sent back for changes",
+        { done: "sent back for changes", act: "send a draft back for changes" },
       );
       if (no) return no;
       /*
@@ -319,14 +339,17 @@ export function transition(
         context,
         ["changes_requested"],
         "creator",
-        "reopened for drafting",
+        { done: "reopened for drafting", act: "reopen a draft" },
       );
       if (no) return no;
       return move([step(state, "drafting", "creator")]);
     }
 
     case "publish": {
-      const no = unavailable(snapshot, context, ["approved"], "creator", "published");
+      const no = unavailable(snapshot, context, ["approved"], "creator", {
+        done: "published",
+        act: "publish this post",
+      });
       if (no) return no;
       // The post exists on LinkedIn or it does not. We do not publish, so the
       // URL the creator pastes is the only evidence there is.
@@ -337,7 +360,10 @@ export function transition(
     }
 
     case "complete": {
-      const no = unavailable(snapshot, context, ["published"], "system", "completed");
+      const no = unavailable(snapshot, context, ["published"], "system", {
+        done: "completed",
+        act: "close a collaboration",
+      });
       if (no) return no;
       if (snapshot.publishedAt === null) {
         return refuse("This collaboration has no publication date to measure from.");
@@ -349,7 +375,10 @@ export function transition(
     }
 
     case "cancel": {
-      const no = unavailable(snapshot, context, PRE_PUBLISH_STATES, "brand", "cancelled");
+      const no = unavailable(snapshot, context, PRE_PUBLISH_STATES, "brand", {
+        done: "cancelled",
+        act: "cancel a booking",
+      });
       if (no) return no;
       return move([step(state, "cancelled", "brand", note(action.note))]);
     }
