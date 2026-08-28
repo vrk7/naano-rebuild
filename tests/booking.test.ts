@@ -1,7 +1,26 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { RESPOND_WINDOW_HOURS } from "@/lib/collaboration/machine";
+import { loadCreatorCollaboration, loadCreatorCollaborations } from "@/lib/collaboration/creator-inbox";
+import { bookCreator, loadBookingTarget, loadCampaignCollaborations, loadWalletBalance } from "@/lib/collaboration/queries";
+import { applyTransition } from "@/lib/collaboration/transitions";
+
+/**
+ * The app's Supabase client is per-request and reads cookies, which do not
+ * exist here. Swapping it for a signed-in client lets the query modules run
+ * against the real database exactly as they do in a request — same select
+ * strings, same RLS, same mapping — which is the half of them no unit test
+ * reaches.
+ */
+const session = vi.hoisted(() => ({ current: null as unknown }));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => {
+    if (!session.current) throw new Error("No session set for this test.");
+    return session.current;
+  },
+}));
 
 /**
  * `book_creator` and `apply_collaboration_transition`, against the real
@@ -58,7 +77,13 @@ function must<T>(label: string, result: { data: T | null; error: unknown }): T {
 const admin = hasCredentials ? adminClient() : null;
 const created = { users: [] as string[], workspaces: [] as string[], creators: [] as string[] };
 
-type Brand = { userId: string; token: string; workspaceId: string; walletId: string };
+type Brand = {
+  userId: string;
+  token: string;
+  client: SupabaseClient;
+  workspaceId: string;
+  walletId: string;
+};
 
 let brand: Brand;
 /** A second workspace, so "not your campaign" is a real crossing and not an absent row. */
@@ -66,9 +91,12 @@ let outsider: Brand;
 let creatorId: string;
 let creatorUserId: string;
 let creatorToken: string;
-let campaigns: { alpha: string; beta: string; gamma: string };
+let creatorClient: SupabaseClient;
+let campaigns: { alpha: string; beta: string; gamma: string; delta: string };
 
-async function createUser(tag: string): Promise<{ id: string; token: string }> {
+async function createUser(
+  tag: string,
+): Promise<{ id: string; token: string; client: SupabaseClient }> {
   const email = `${RUN}-${tag}@example.test`;
   const { data, error } = await admin!.auth.admin.createUser({
     email,
@@ -83,7 +111,9 @@ async function createUser(tag: string): Promise<{ id: string; token: string }> {
   });
   const signIn = await anon.auth.signInWithPassword({ email, password: PASSWORD });
   if (signIn.error) throw new Error(`signIn ${email}: ${signIn.error.message}`);
-  return { id: data.user.id, token: signIn.data.session!.access_token };
+  // `anon` now holds the session, so both PostgREST and auth.getClaims() work
+  // on it — the second is what transitions.ts resolves the actor from.
+  return { id: data.user.id, token: signIn.data.session!.access_token, client: anon };
 }
 
 async function buildBrand(tag: string, walletCents: number): Promise<Brand> {
@@ -111,7 +141,13 @@ async function buildBrand(tag: string, walletCents: number): Promise<Brand> {
       .select("id"),
   );
 
-  return { userId: user.id, token: user.token, workspaceId: workspace.id, walletId: wallet.id };
+  return {
+    userId: user.id,
+    token: user.token,
+    client: user.client,
+    workspaceId: workspace.id,
+    walletId: wallet.id,
+  };
 }
 
 async function createCampaign(workspaceId: string, name: string): Promise<string> {
@@ -165,6 +201,7 @@ beforeAll(async () => {
   const creatorUser = await createUser("creator");
   creatorToken = creatorUser.token;
   creatorUserId = creatorUser.id;
+  creatorClient = creatorUser.client;
   const [creator] = must(
     "creator",
     await admin!
@@ -183,6 +220,7 @@ beforeAll(async () => {
     alpha: await createCampaign(brand.workspaceId, "alpha"),
     beta: await createCampaign(brand.workspaceId, "beta"),
     gamma: await createCampaign(brand.workspaceId, "gamma"),
+    delta: await createCampaign(brand.workspaceId, "delta"),
   };
 });
 
@@ -381,5 +419,97 @@ describe.skipIf(!hasCredentials)("accepting", () => {
     );
     // The refused attempt left no half-written log behind it.
     expect(events).toHaveLength(3);
+  });
+});
+
+/**
+ * The path a request actually takes.
+ *
+ * The database functions are covered above; this is everything between them and
+ * a page — the PostgREST select strings, the mapping into the app's own types,
+ * and the actor derivation that decides which side of a collaboration the
+ * session is on. None of it is reachable from a unit test, and all of it fails
+ * at runtime rather than at build time when a relation name is wrong.
+ */
+describe.skipIf(!hasCredentials)("through the app's own queries", () => {
+  it("reads the wallet and the booking target as the brand", async () => {
+    session.current = brand.client;
+
+    expect(await loadWalletBalance()).toBe(await walletBalance(brand.walletId));
+
+    const target = await loadBookingTarget(campaigns.delta, creatorId);
+    expect(target?.creator.displayName).toBe(`${RUN}-creator`);
+    // No creator_rate row, so there is nothing to prefill — null, not zero.
+    expect(target?.creator.priceCents).toBeNull();
+    expect(target?.existing).toBeNull();
+  });
+
+  it("books, then lists what the campaign has booked", async () => {
+    session.current = brand.client;
+
+    const result = await bookCreator(campaigns.delta, creatorId, {
+      priceCents: PRICE_CENTS,
+      postBy: "2026-12-01",
+      approvalRequired: false,
+    });
+    expect(result.kind).toBe("ok");
+
+    const booked = await loadCampaignCollaborations(campaigns.delta);
+    expect(booked).toHaveLength(1);
+    expect(booked[0].creator.displayName).toBe(`${RUN}-creator`);
+    expect(booked[0].state).toBe("invited");
+    expect(booked[0].approvalRequired).toBe(false);
+    expect(booked[0].priceCents).toBe(PRICE_CENTS);
+
+    // The refusal arrives as a refusal, not as a thrown fault.
+    const again = await bookCreator(campaigns.delta, creatorId, {
+      priceCents: PRICE_CENTS,
+      postBy: "2026-12-01",
+      approvalRequired: false,
+    });
+    expect(again).toEqual({ kind: "refused", reason: expect.stringMatching(/already booked/i) });
+
+    const target = await loadBookingTarget(campaigns.delta, creatorId);
+    expect(target?.existing?.state).toBe("invited");
+  });
+
+  it("shows the creator their invitation and the brief behind it", async () => {
+    session.current = creatorClient;
+
+    const inbox = await loadCreatorCollaborations();
+    const invitation = inbox.find((row) => row.state === "invited");
+    expect(invitation).toBeDefined();
+
+    const detail = await loadCreatorCollaboration(invitation!.id);
+    // The brief crosses to a booked creator; the campaign it belongs to does not.
+    expect(detail?.brief).toEqual({
+      mode: "creative_freedom",
+      body: "Your take.",
+      requirements: {},
+    });
+  });
+
+  it("refuses the brand accepting on the creator's behalf", async () => {
+    const [invitation] = must(
+      "invitation",
+      await admin!
+        .from("collaboration")
+        .select("id")
+        .eq("campaign_id", campaigns.delta)
+        .eq("state", "invited"),
+    );
+
+    session.current = brand.client;
+    const result = await applyTransition(invitation.id, { kind: "accept" });
+
+    // The actor is derived from the session, so a brand asking to accept is
+    // refused by the machine rather than by a missing button.
+    expect(result).toEqual({ kind: "refused", reason: expect.stringMatching(/only the creator/i) });
+
+    session.current = creatorClient;
+    expect(await applyTransition(invitation.id, { kind: "accept" })).toEqual({
+      kind: "ok",
+      state: "drafting",
+    });
   });
 });
