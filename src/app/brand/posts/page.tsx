@@ -56,9 +56,9 @@ export default async function PostsIndex() {
                     </Link>
                     <CellNote>{post.campaignName}</CellNote>
                   </TD>
-                  <TD numeric>{post.economics.engagedPeople}</TD>
+                  <TD numeric>{post.economics.engagedPeople.toLocaleString()}</TD>
                   <TD numeric>
-                    {post.economics.matchedPeople}
+                    {post.economics.matchedPeople.toLocaleString()}
                     <CellNote>{formatPercent(post.economics.matchRate)}</CellNote>
                   </TD>
                   <TD numeric>{formatCents(post.economics.costCents)}</TD>

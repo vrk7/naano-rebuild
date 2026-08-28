@@ -66,7 +66,7 @@ export default async function PostPage({ params }: PageProps<"/brand/posts/[post
       <section className="mt-8">
         <SectionHeader
           title="People who engaged"
-          meta={`${post.economics.engagedPeople} people · ${post.economics.matchedPeople} matching an ICP`}
+          meta={`${post.economics.engagedPeople.toLocaleString()} people · ${post.economics.matchedPeople.toLocaleString()} matching an ICP`}
           description="Simulated engagement. Every person here was generated from this creator’s audience snapshot, not scraped from LinkedIn."
         />
         <PeopleTable people={post.people} />

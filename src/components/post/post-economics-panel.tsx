@@ -39,8 +39,8 @@ export function PostEconomicsPanel({ economics }: { economics: PostEconomics }) 
           </dd>
           <p className="mt-1 text-xs text-pretty text-muted-foreground">
             {economics.matchedPeople === 0
-              ? `None of the ${economics.engagedPeople} people who engaged matched an active ICP.`
-              : `${economics.matchedPeople} of ${economics.engagedPeople} engaged people (${formatPercent(economics.matchRate)}).`}
+              ? `None of the ${economics.engagedPeople.toLocaleString()} people who engaged matched an active ICP.`
+              : `${economics.matchedPeople.toLocaleString()} of ${economics.engagedPeople.toLocaleString()} engaged people (${formatPercent(economics.matchRate)}).`}
           </p>
         </div>
       </CardBody>
