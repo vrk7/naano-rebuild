@@ -48,7 +48,7 @@ export function ScoreCard({
           <p className="truncate text-xs text-muted-foreground">{audience}</p>
           <span
             className={cn(
-              "mt-2 inline-flex rounded-full px-2 py-0.5 text-[0.7rem] font-medium",
+              "mt-2 inline-flex rounded-full px-2 py-0.5 text-2xs font-medium",
               confidence === "low"
                 ? "bg-muted text-muted-foreground"
                 : "bg-brand-soft text-brand",
@@ -62,7 +62,7 @@ export function ScoreCard({
       <dl className="mt-4 space-y-2">
         {dimensions.map((dimension, index) => (
           <div key={dimension.label} className="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-3">
-            <dt className="text-[0.7rem] text-muted-foreground">{dimension.label}</dt>
+            <dt className="text-2xs text-muted-foreground">{dimension.label}</dt>
             <dd className="h-1.5 overflow-hidden rounded-full bg-muted">
               <span
                 className="meter-fill block h-full rounded-full bg-brand"
@@ -72,7 +72,7 @@ export function ScoreCard({
                 }}
               />
             </dd>
-            <dd className="text-right text-[0.7rem] tabular-nums text-muted-foreground">
+            <dd className="text-right text-2xs tabular-nums text-muted-foreground">
               {Math.round(dimension.overlap * 100)}%
             </dd>
           </div>

@@ -28,7 +28,7 @@ export function Hero() {
 
         <h1
           id="hero-heading"
-          className="anim-rise text-4xl font-semibold tracking-tight text-balance sm:text-5xl md:text-[4rem] md:leading-[1.04]"
+          className="anim-rise text-4xl font-semibold text-balance sm:text-5xl md:text-6xl"
           style={{ animationDelay: "0.08s" }}
         >
           Point at a post.
@@ -52,14 +52,14 @@ export function Hero() {
           <Button
             asChild
             size="lg"
-            className="h-11 gap-2 px-5 text-[0.95rem] bg-brand text-brand-foreground hover:bg-brand/85"
+            className="h-11 gap-2 px-5 text-base bg-brand text-brand-foreground hover:bg-brand/85"
           >
             <Link href="/register">
               Launch a campaign
               <ArrowRight className="size-4" />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="h-11 px-5 text-[0.95rem]">
+          <Button asChild variant="outline" size="lg" className="h-11 px-5 text-base">
             <a href="#how-it-works">See how it works</a>
           </Button>
         </div>
@@ -72,7 +72,7 @@ export function Hero() {
             {AVATARS.map((initials) => (
               <span
                 key={initials}
-                className="grid size-7 place-items-center rounded-full border-2 border-background bg-brand-soft text-[0.6rem] font-semibold text-brand"
+                className="grid size-7 place-items-center rounded-full border-2 border-background bg-brand-soft text-2xs font-semibold text-brand"
               >
                 {initials}
               </span>

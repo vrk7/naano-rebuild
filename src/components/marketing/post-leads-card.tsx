@@ -77,7 +77,7 @@ export function PostLeadsCard({ className }: { className?: string }) {
             Supply-chain operations · 41,200 followers
           </p>
         </div>
-        <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[0.7rem] font-medium text-brand">
+        <span className="rounded-full bg-brand-soft px-2.5 py-1 text-2xs font-medium text-brand">
           Published
         </span>
       </header>
@@ -90,7 +90,7 @@ export function PostLeadsCard({ className }: { className?: string }) {
       <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-muted/60 p-3">
         {METRICS.map((metric) => (
           <div key={metric.label}>
-            <dt className="text-[0.7rem] text-muted-foreground">{metric.label}</dt>
+            <dt className="text-2xs text-muted-foreground">{metric.label}</dt>
             <dd className="text-sm font-semibold tabular-nums">{metric.value}</dd>
           </div>
         ))}
@@ -113,7 +113,7 @@ export function PostLeadsCard({ className }: { className?: string }) {
             className="anim-rise flex items-center gap-3 rounded-xl border border-border/70 bg-background px-3 py-2.5"
             style={{ animationDelay: `${0.7 + index * 0.22}s` }}
           >
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-[0.7rem] font-semibold text-muted-foreground">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-2xs font-semibold text-muted-foreground">
               {initials(person.name)}
             </span>
             <div className="min-w-0 flex-1">
@@ -124,7 +124,7 @@ export function PostLeadsCard({ className }: { className?: string }) {
             </div>
             <span
               className={cn(
-                "shrink-0 rounded-full px-2 py-1 text-[0.7rem] font-medium tabular-nums",
+                "shrink-0 rounded-full px-2 py-1 text-2xs font-medium tabular-nums",
                 person.icp
                   ? "bg-brand-soft text-brand"
                   : "bg-muted text-muted-foreground",

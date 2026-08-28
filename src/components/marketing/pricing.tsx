@@ -88,7 +88,7 @@ export function Pricing() {
               )}
             >
               {plan.isFeatured ? (
-                <span className="absolute -top-3 left-7 rounded-full bg-brand px-3 py-1 text-[0.7rem] font-semibold text-brand-foreground">
+                <span className="absolute -top-3 left-7 rounded-full bg-brand px-3 py-1 text-2xs font-semibold text-brand-foreground">
                   Most popular
                 </span>
               ) : null}
@@ -120,7 +120,7 @@ export function Pricing() {
                 size="lg"
                 variant={plan.isFeatured ? "default" : "outline"}
                 className={cn(
-                  "h-11 w-full text-[0.95rem]",
+                  "h-11 w-full text-base",
                   plan.isFeatured && "bg-brand text-brand-foreground hover:bg-brand/85",
                 )}
               >

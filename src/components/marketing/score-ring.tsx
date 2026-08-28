@@ -65,7 +65,7 @@ export function ScoreRing({ value, className, delaySeconds = 0.25 }: ScoreRingPr
             {value}
           </span>
         ) : (
-          <span className="text-[0.6rem] leading-tight font-medium text-muted-foreground">n/a</span>
+          <span className="text-2xs leading-tight font-medium text-muted-foreground">n/a</span>
         )}
       </div>
     </div>
