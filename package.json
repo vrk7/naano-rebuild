@@ -14,7 +14,8 @@
     "db:new": "supabase migration new",
     "db:push": "supabase db push",
     "db:status": "supabase migration list",
-    "db:seed": "node --env-file=.env.local scripts/seed.ts"
+    "db:seed": "node --env-file=.env.local scripts/seed.ts",
+    "db:seed:demo": "node --env-file=.env.local scripts/seed-demo.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
