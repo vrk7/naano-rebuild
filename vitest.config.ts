@@ -7,6 +7,15 @@ export default defineConfig({
     // app code by the same path the app does.
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      /*
+       * `server-only` exists to make importing a server module from a Client
+       * Component a build error. Outside Next there is no such distinction and
+       * the package throws on import, which would put every server module —
+       * the website reader, the model provider — permanently out of reach of a
+       * test. The stub is empty on purpose: the guard it replaces is enforced
+       * at build time, by Next, where it means something.
+       */
+      "server-only": fileURLToPath(new URL("./tests/server-only-stub.ts", import.meta.url)),
     },
   },
   test: {

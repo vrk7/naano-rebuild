@@ -11,7 +11,8 @@
 import { campaignReach, type CampaignReach } from "@/lib/campaign/reach";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/supabase/paginate";
-import { buildTaxonomyLookup, type TaxonomyLookup, type TopicRow } from "@/lib/score/labels";
+import { loadTopics } from "@/lib/taxonomy/queries";
+import { buildTaxonomyLookup, type TaxonomyLookup } from "@/lib/score/labels";
 import {
   scoreCreator,
   type AudienceFacet,
@@ -77,14 +78,6 @@ export type CreatorProfile = {
   readonly campaignReach: CampaignReach | null;
   readonly taxonomy: TaxonomyLookup;
 };
-
-async function loadTopics(): Promise<TopicRow[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("topic").select("id, slug, label, kind");
-  if (error) throw new Error(`Could not load topics: ${error.message}`);
-  if (!data) throw new Error("Topic query returned no data");
-  return data as TopicRow[];
-}
 
 /**
  * The workspace's active ICPs with their targets.

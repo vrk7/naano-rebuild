@@ -28,6 +28,20 @@ export const SUPABASE_ANON_KEY = required(
 );
 
 /**
+ * The model key behind brand-profile generation (SCOPE.md,
+ * `BrandIntelligenceProvider`).
+ *
+ * Optional, unlike everything above, and returning null rather than throwing is
+ * the point: generation is a fake behind a seam, and an install without a key
+ * still has to be able to onboard a brand. The provider reports itself
+ * unavailable and the brand fills the ICP editor in by hand.
+ */
+export function googleApiKey(): string | null {
+  const value = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  return value && value.trim() !== "" ? value : null;
+}
+
+/**
  * Server-only. Bypasses row level security, so this must never be imported
  * into a Client Component — `src/lib/supabase/admin.ts` is the only caller and
  * it is marked `server-only` to enforce that at build time.
