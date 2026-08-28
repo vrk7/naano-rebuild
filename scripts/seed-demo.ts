@@ -28,9 +28,9 @@ import {
   type GeneratedPerson,
 } from "../src/lib/seed/engagement.ts";
 import { createRng, hashSeed, randomInt } from "../src/lib/seed/random.ts";
+import { scorePerson } from "../src/lib/score/person.ts";
 import {
   ICP_MATCH_THRESHOLD,
-  scorePerson,
   type ScoreDimension,
 } from "../src/lib/score/weights.ts";
 
