@@ -11,10 +11,15 @@ const LINKS = [
   { href: "/brand", label: "Campaigns" },
   { href: "/brand/creators", label: "Creators" },
   { href: "/brand/posts", label: "Posts" },
+  // Leads is the same data as Posts, aggregated the other way: per person
+  // rather than per post. Both are listed because a brand arrives with one of
+  // those two questions and not reliably the other.
+  { href: "/brand/leads", label: "Leads" },
   // The ICP editor is not an onboarding screen you pass through once. It is
   // the only place the score's inputs can be corrected, and naano's own open
   // question is whether that is even possible there (recon/NOTES.md).
   { href: "/brand/icps", label: "ICPs" },
+  { href: "/brand/wallet", label: "Wallet" },
 ] as const;
 
 export default function BrandLayout({ children }: LayoutProps<"/brand">) {
