@@ -26,7 +26,7 @@ export function BookedList({
         <li key={collaboration.id} className="rounded-xl border border-border p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <Link
-              href={`/brand/creators/${collaboration.creator.id}?campaign=${campaignId}`}
+              href={`/brand/collaborations/${collaboration.id}`}
               className="font-medium underline-offset-4 hover:underline"
             >
               {collaboration.creator.displayName}
@@ -52,6 +52,16 @@ export function BookedList({
           <p className="mt-1 text-sm text-pretty text-muted-foreground">
             {status(collaboration, now)}
           </p>
+
+          {/* The collaboration is what the name links to, because that is where
+              the draft and the decision live. The score that produced the
+              booking is a click away rather than gone. */}
+          <Link
+            href={`/brand/creators/${collaboration.creator.id}?campaign=${campaignId}`}
+            className="mt-1 inline-block text-xs text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Creator profile and score →
+          </Link>
         </li>
       ))}
     </ul>

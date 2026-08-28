@@ -2,21 +2,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BriefPanel } from "@/components/campaign/brief-panel";
+import { DraftPanel } from "@/components/draft/draft-panel";
 import { STATE_LABEL, type CollaborationState } from "@/lib/collaboration/machine";
 import { loadCreatorCollaboration } from "@/lib/collaboration/creator-inbox";
+import { latestChangeNote, loadEvents } from "@/lib/collaboration/queries";
+import { loadDrafts, loadPost, type DraftVersion } from "@/lib/draft/queries";
 import { formatCents } from "@/lib/posts/metrics";
 
+import { DraftForm } from "./draft-form";
+import { PublishForm } from "./publish-form";
 import { RespondForm } from "./respond-form";
 
 export const metadata = { title: "Collaboration" };
 
 /**
- * One invitation, and the two answers to it (PRODUCT.md step 8).
+ * One collaboration, from the creator's side (PRODUCT.md steps 8 to 11).
  *
- * Everything a creator needs to decide is on this page: the price, the date it
- * has to be out by, who approves the draft, how long they have to answer, and
- * the brief itself. There is no third answer — SCOPE.md cuts counter-offers,
- * and adding states to the machine to negotiate would not test the thesis.
+ * Everything they need to decide, then everything they need to do: the terms
+ * and the brief, then whichever of answering, writing, revising and publishing
+ * the state machine says is theirs right now. There is only ever one action on
+ * screen, because `needsAction` only ever names one side at a time.
  */
 export default async function CreatorCollaborationPage({
   params,
@@ -28,10 +33,16 @@ export default async function CreatorCollaborationPage({
   // nothing and the page cannot tell the difference, which is the point.
   if (!collaboration) notFound();
 
+  const [drafts, post, events] = await Promise.all([
+    loadDrafts(collaborationId),
+    loadPost(collaborationId),
+    loadEvents(collaborationId),
+  ]);
+
   const now = new Date();
   const respondBy = collaboration.respondBy ? new Date(collaboration.respondBy) : null;
   const lapsed = respondBy !== null && now >= respondBy;
-  const isOpenInvitation = collaboration.state === "invited";
+  const [latest] = drafts;
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -88,44 +99,145 @@ export default async function CreatorCollaborationPage({
         )}
       </div>
 
-      {isOpenInvitation ? (
-        <section className="mt-8 border-t border-border pt-6">
-          {lapsed ? (
-            <p className="text-sm text-pretty">
-              The window to answer closed on {formatWhen(respondBy!)}, so this can no
-              longer be accepted. Declining still works and tells the brand where it
-              stands.
-            </p>
-          ) : null}
-          <RespondForm collaborationId={collaboration.id} canAccept={!lapsed} />
-        </section>
-      ) : (
-        <section className="mt-8 border-t border-border pt-6">
-          <p className="text-sm text-pretty text-muted-foreground">
-            {AFTER_ANSWERING[collaboration.state]}
-          </p>
-        </section>
-      )}
+      <section className="mt-8 border-t border-border pt-6">
+        {collaboration.state === "invited" ? (
+          <>
+            {lapsed ? (
+              <p className="text-sm text-pretty">
+                The window to answer closed on {formatWhen(respondBy!)}, so this can no
+                longer be accepted. Declining still works and tells the brand where it
+                stands.
+              </p>
+            ) : null}
+            <RespondForm collaborationId={collaboration.id} canAccept={!lapsed} />
+          </>
+        ) : (
+          <Work
+            collaborationId={collaboration.id}
+            state={collaboration.state}
+            drafts={drafts}
+            postUrl={post?.externalUrl ?? null}
+            changeNote={latestChangeNote(events)?.note ?? null}
+          />
+        )}
+      </section>
+
+      {latest && collaboration.state !== "in_review" && collaboration.state !== "drafting" &&
+      collaboration.state !== "changes_requested" ? (
+        <div className="mt-6">
+          <DraftPanel draft={latest} />
+        </div>
+      ) : null}
     </main>
   );
 }
 
 /**
- * What happens next, once there is nothing to answer.
+ * Whatever is the creator's to do next.
  *
- * The drafting screens are step 9 and are not built. Saying so is better than a
- * button that does nothing or a page that just stops.
+ * Driven by `state` alone, which is what makes it the same answer as the
+ * "Needs you" marker on the list: PRODUCT.md derives both from one function
+ * rather than keeping two inboxes that can disagree.
+ */
+function Work({
+  collaborationId,
+  state,
+  drafts,
+  postUrl,
+  changeNote,
+}: {
+  collaborationId: string;
+  state: CollaborationState;
+  drafts: ReadonlyArray<DraftVersion>;
+  postUrl: string | null;
+  changeNote: string | null;
+}) {
+  const [latest] = drafts;
+
+  if (state === "drafting" || state === "changes_requested") {
+    return (
+      <div>
+        <h2 className="text-sm font-medium">
+          {state === "changes_requested" ? "The brand sent it back" : "Write the post"}
+        </h2>
+
+        {state === "changes_requested" && changeNote ? (
+          <blockquote className="mt-3 border-l-2 border-border pl-4 text-sm text-pretty">
+            {changeNote}
+          </blockquote>
+        ) : null}
+
+        {latest ? (
+          <div className="mt-4">
+            <DraftPanel draft={latest} title={`What you submitted (version ${latest.version})`} />
+          </div>
+        ) : null}
+
+        <DraftForm
+          collaborationId={collaborationId}
+          previousBody={latest?.body ?? ""}
+          isRevision={latest !== undefined}
+        />
+      </div>
+    );
+  }
+
+  if (state === "approved") {
+    return (
+      <div>
+        <h2 className="text-sm font-medium">Publish it</h2>
+        <p className="mt-2 text-sm text-pretty text-muted-foreground">
+          Approved. Post it on LinkedIn and paste the link back — everything the brand
+          sees afterwards hangs off that link.
+        </p>
+        <PublishForm collaborationId={collaborationId} />
+      </div>
+    );
+  }
+
+  if (state === "published" || state === "completed") {
+    return (
+      <div>
+        <h2 className="text-sm font-medium">
+          {state === "published" ? "Published" : "Closed"}
+        </h2>
+        <p className="mt-2 text-sm text-pretty text-muted-foreground">
+          {state === "published"
+            ? "The measurement window is running."
+            : "The measurement window has closed."}
+        </p>
+        {postUrl ? (
+          <a
+            href={postUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="mt-2 inline-block break-all text-sm underline underline-offset-4"
+          >
+            {postUrl}
+          </a>
+        ) : null}
+      </div>
+    );
+  }
+
+  return <p className="text-sm text-pretty text-muted-foreground">{AFTER_ANSWERING[state]}</p>;
+}
+
+/**
+ * The states where nothing is the creator's to do.
+ *
+ * `in_review` is the one that matters: it is the brand's turn, and saying so
+ * beats a screen that just stops.
  */
 const AFTER_ANSWERING: Readonly<Record<CollaborationState, string>> = {
   invited: "",
   accepted: "Accepted. Drafting starts immediately.",
-  drafting:
-    "Accepted — this is yours to write. The drafting screen is not built yet, so there is nothing to submit from here.",
-  in_review: "Your draft is with the brand.",
-  changes_requested: "The brand sent it back with a note.",
-  approved: "Approved. Publish it and paste the URL back.",
-  published: "Published. The measurement window is running.",
-  completed: "Closed.",
+  drafting: "",
+  in_review: "Your draft is with the brand. Nothing to do until they answer.",
+  changes_requested: "",
+  approved: "",
+  published: "",
+  completed: "",
   declined: "You declined this one.",
   expired: "This invitation expired unanswered.",
   cancelled: "The brand cancelled this booking.",
